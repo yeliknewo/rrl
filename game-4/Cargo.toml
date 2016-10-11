@@ -1,0 +1,10 @@
+[package]
+name = "rl-game-4"
+version = "0.1.0"
+authors = ["Kiley Owen <yelikdev@gmail.com>"]
+
+[dependencies]
+log = "0.3.6"
+env_logger = "0.3.5"
+
+core = { path="../core" }

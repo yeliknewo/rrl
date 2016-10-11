@@ -1,0 +1,9 @@
+[package]
+name = "neural"
+version = "0.1.0"
+authors = ["Kiley Owen <yelikdev@gmail.com>"]
+
+[dependencies]
+log = "0.3.6"
+rand = "0.3.14"
+utils = { path="../utils" }

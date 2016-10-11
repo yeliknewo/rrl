@@ -1,0 +1,8 @@
+[package]
+name = "components"
+version = "0.1.0"
+authors = ["Kiley Owen <yelikdev@gmail.com>"]
+
+[dependencies]
+utils = { path="../utils" }
+specs = "0.7.0"

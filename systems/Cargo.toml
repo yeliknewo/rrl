@@ -1,0 +1,13 @@
+[package]
+name = "systems"
+version = "0.1.0"
+authors = ["Kiley Owen <yelikdev@gmail.com>"]
+
+[dependencies]
+log = "0.3.6"
+find_folder = "0.3.0"
+getopts = "0.2"
+components = { path="../components" }
+event = { path="../event" }
+event_enums = { path="../event_enums" }
+neural = { path="../neural" }

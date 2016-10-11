@@ -1,0 +1,10 @@
+[package]
+name = "core"
+version = "0.1.0"
+authors = ["Kiley Owen <yelikdev@gmail.com>"]
+
+[dependencies]
+log = "0.3.6"
+time = "0.1.35"
+art = { path="../art" }
+systems = { path="../systems" }

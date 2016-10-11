@@ -1,0 +1,9 @@
+[package]
+name = "utils"
+version = "0.1.0"
+authors = ["Kiley Owen <yelikdev@gmail.com>"]
+
+[dependencies]
+cgmath = "0.12.0"
+log = "0.3.6"
+rustc-serialize = "0.3"
