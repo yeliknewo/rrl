@@ -44,6 +44,9 @@ impl System<Delta> for ScoreSystem {
             let pos = transform.get_pos();
             player_info.push((player.get_player(), pos));
             if pos.x.abs() > 10.0 || pos.y.abs() > 10.0 {
+                if player.get_player() == Player::One {
+                    continue;
+                }
                 self.feeder_front_channel
                     .send_to(ScoreToFeeder::Lose(player.get_player(), 0.0, -150.0));
                 done = true;

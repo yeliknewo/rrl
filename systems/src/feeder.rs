@@ -6,7 +6,7 @@ use event::{FrontChannel, BackChannel};
 use event_enums::feeder_x_ai::{FeederToAi, FeederFromAi};
 use event_enums::score_x_feeder::{ScoreToFeeder, ScoreFromFeeder};
 
-const DISTANCE_WEIGHT: f32 = 5.0;
+// const DISTANCE_WEIGHT: f32 = 5.0;
 const TIME_WEIGHT: f64 = 1.0;
 
 pub struct FeederSystem {
@@ -40,16 +40,16 @@ impl System<Delta> for FeederSystem {
                     self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
                         match loser {
                             Player::One => {
-                                vec![(Player::One,
-                                      ((time_add_loser + self.time) * TIME_WEIGHT) as i64),
-                                     (Player::Two,
-                                      ((time_add_winner + self.time) * TIME_WEIGHT) as i64)]
+                                vec![(Player::One, 0),
+                                     // ((time_add_loser + self.time) * TIME_WEIGHT) as i64),
+                                     (Player::Two, 0)]
+                                // ((time_add_winner + self.time) * TIME_WEIGHT) as i64)]
                             }
                             Player::Two => {
-                                vec![(Player::One,
-                                      ((time_add_winner + self.time) * TIME_WEIGHT) as i64),
-                                     (Player::Two,
-                                      ((time_add_loser + self.time) * TIME_WEIGHT) as i64)]
+                                vec![(Player::One, 0),
+                                     // ((time_add_winner + self.time) * TIME_WEIGHT) as i64),
+                                     (Player::Two, 0)]
+                                // ((time_add_loser + self.time) * TIME_WEIGHT) as i64)]
                             }
                         }
                     }));
@@ -57,8 +57,8 @@ impl System<Delta> for FeederSystem {
                 }
                 ScoreToFeeder::LoseBoth(time_add_one, time_add_two) => {
                     self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
-                        vec![(Player::One, ((time_add_one + self.time) * TIME_WEIGHT) as i64),
-                             (Player::Two, ((time_add_two + self.time) * TIME_WEIGHT) as i64)]
+                        vec![(Player::One, 0),//((time_add_one + self.time) * TIME_WEIGHT) as i64),
+                             (Player::Two, 0)]//((time_add_two + self.time) * TIME_WEIGHT) as i64)]
                     }));
                     self.time = 0.0;
                 }
@@ -71,7 +71,7 @@ impl System<Delta> for FeederSystem {
             player_data.push((player.get_player(), transform.get_pos(), moving.get_velocity()));
         }
 
-        // let center = Vector3::new(0.0, 0.0, 0.0);
+        let center = Vector3::new(0.0, 0.0, 0.0);
 
         self.ai_front_channel.send_to(FeederToAi::Reward(player_data.iter()
             .filter_map(|me| {
@@ -86,8 +86,8 @@ impl System<Delta> for FeederSystem {
                     .collect::<Vec<Vector3<Coord>>>();
                 if other.len() == 1 {
                     match me.0 {
-                        Player::One => Some((me.0, 0)),
-                        Player::Two => Some((me.0, 0)),
+                        Player::One => Some((me.0, -1)),//-me.1.distance(center) as i64)),
+                        Player::Two => Some((me.0, 1)),//-me.1.distance(center) as i64)),
                     }
                 } else {
                     None

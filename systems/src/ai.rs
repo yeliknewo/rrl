@@ -315,7 +315,8 @@ impl<'a, 'b> AiSystem {
 
         let input_size = 4;
 
-        let network_size = vec![4, 7, 9, 20, 9, 7, 5, 2];
+        let network_size_chase = vec![4, 7, 9, 20, 45, 90, 200, 90, 45, 20, 9, 7, 5, 2];
+        let network_size_flee = vec![4, 7, 9, 20, 45, 90, 200, 90, 45, 20, 9, 7, 5, 2];
 
         let min_weight = -1.0;
 
@@ -328,22 +329,28 @@ impl<'a, 'b> AiSystem {
         let mut brain_type = HashMap::new();
 
         brain_type.insert(Brain::Chase,
-                          BrainClump::load(Brain::Chase).unwrap_or(BrainClump::new(network_count,
-                                                                                   input_size,
-                                                                                   network_size,
-                                                                                   min_weight,
-                                                                                   max_weight,
-                                                                                   min_bias,
-                                                                                   max_bias)));
-        let network_size = vec![4, 7, 9, 20, 9, 7, 5, 2];
+                          BrainClump::load(Brain::Chase).unwrap_or_else(|| {
+            warn!("Load Brain Chase Failed");
+            BrainClump::new(network_count,
+                            input_size,
+                            network_size_chase,
+                            min_weight,
+                            max_weight,
+                            min_bias,
+                            max_bias)
+        }));
+
         brain_type.insert(Brain::Flee,
-                          BrainClump::load(Brain::Flee).unwrap_or(BrainClump::new(network_count,
-                                                                                  input_size,
-                                                                                  network_size,
-                                                                                  min_weight,
-                                                                                  max_weight,
-                                                                                  min_bias,
-                                                                                  max_bias)));
+                          BrainClump::load(Brain::Flee).unwrap_or_else(|| {
+            warn!("Load Brain Flee Failed");
+            BrainClump::new(network_count,
+                            input_size,
+                            network_size_flee,
+                            min_weight,
+                            max_weight,
+                            min_bias,
+                            max_bias)
+        }));
 
         let mut system = AiSystem {
             main_back_channel: main_back_channel,

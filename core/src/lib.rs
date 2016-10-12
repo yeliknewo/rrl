@@ -172,7 +172,7 @@ pub fn start_glutin(fixed_delta: Option<f64>) {
                     match front_event_clump.get_mut_ai()
                         .unwrap_or_else(|| panic!("Ai was none"))
                         .recv_from() {
-                        MainFromAi::Saved => (),
+                        MainFromAi::Saved => warn!("Autosaved"),
                     };
                 }
             }
@@ -294,7 +294,7 @@ pub fn start_sdl2(fixed_delta: Option<f64>) {
                     match front_event_clump.get_mut_ai()
                         .unwrap_or_else(|| panic!("Ai was none"))
                         .recv_from() {
-                        MainFromAi::Saved => (),
+                        MainFromAi::Saved => warn!("Autosaved"),
                     };
                 }
             }
