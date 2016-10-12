@@ -1,4 +1,3 @@
-use std::env;
 use std::io::{BufWriter, BufReader};
 use std::io::prelude::{Write, Read};
 use std::path::PathBuf;
@@ -7,10 +6,9 @@ use std::collections::HashMap;
 use neural::network::NeuralNetwork;
 use neural::evolution::EvolutionaryTrainer;
 use find_folder::Search;
-use getopts::Options;
 use rustc_serialize::json;
 use specs::{System, RunArg};
-use utils::{Delta, Player};
+use utils::{Delta, Player, Opter};
 use event::{FrontChannel, BackChannel};
 use event_enums::ai_x_control::{AiToControl, AiFromControl};
 use event_enums::feeder_x_ai::{FeederToAi, FeederFromAi};
@@ -110,22 +108,15 @@ impl BrainClump {
         let mut saves = Search::ParentsThenKids(5, 5)
             .for_folder("networks")
             .unwrap_or_else(|err| panic!("{:?}", err));
-        let args: Vec<String> = env::args().collect();
-
-        let mut opts = Options::new();
-        opts.optopt("r", "", "set file to read for starting network", "READ");
-        opts.optopt("w", "", "set file to write to for saving network", "WRITE");
-        let matches = opts.parse(&args[1..]).unwrap_or_else(|err| panic!("{:?}", err));
 
         let mut filename = String::new();
 
-        if matches.opt_present("r") {
-            filename.push_str(matches.opt_str("r")
-                .unwrap_or_else(|| panic!("Write path not specified"))
-                .as_str());
-        } else {
-            return None;
-        }
+        let opter = Opter::new();
+
+        filename.push_str(match opter.get_r() {
+            Some(string) => string.as_str(),
+            None => return None,
+        });
         filename.push_str(name);
         filename.push_str(".network");
         saves.push(filename);
@@ -136,22 +127,15 @@ impl BrainClump {
         let mut saves = Search::ParentsThenKids(5, 5)
             .for_folder("networks")
             .unwrap_or_else(|err| panic!("{:?}", err));
-        let args: Vec<String> = env::args().collect();
-
-        let mut opts = Options::new();
-        opts.optopt("r", "", "set file to read for starting network", "READ");
-        opts.optopt("w", "", "set file to write to for saving network", "WRITE");
-        let matches = opts.parse(&args[1..]).unwrap_or_else(|err| panic!("{:?}", err));
 
         let mut filename = String::new();
 
-        if matches.opt_present("w") {
-            filename.push_str(matches.opt_str("w")
-                .unwrap_or_else(|| panic!("Write path not specified"))
-                .as_str());
-        } else {
-            return None;
-        }
+        let opter = Opter::new();
+
+        filename.push_str(match opter.get_w() {
+            Some(string) => string.as_str(),
+            None => return None,
+        });
         filename.push_str(name);
         filename.push_str(".network");
         saves.push(filename);
@@ -178,35 +162,6 @@ impl BrainClump {
 
         writer.write(encoded.as_bytes()).unwrap_or_else(|err| panic!("{:?}", err));
     }
-
-    // fn print_unused_indices(&self) {
-    //     let indices_total = self.trainer.get_next_generation().len();
-    //     let indices_used: Vec<usize> = self.player_mapper.iter().map(|value| *value.1).collect();
-    //
-    //     for test_index in 0..indices_total {
-    //         if indices_used.binary_search(&test_index).is_err() {
-    //             warn!("Unused by First Stage: {:?}", test_index);
-    //         }
-    //         if self.used_indices.binary_search(&test_index).is_err() {
-    //             warn!("Unused by Second Stage: {:?}", test_index);
-    //         }
-    //     }
-    // }
-
-    // fn get_unused_index_count(&self) -> usize {
-    //     let indices_total = self.trainer.get_next_generation().len();
-    //     let mut indices_used: Vec<usize> = self.player_mapper.iter().map(|value| *value.1).collect();
-    //
-    //     let mut count = 0;
-    //
-    //     for test_index in 0..indices_total {
-    //         if indices_used.binary_search(&test_index).is_err() {
-    //             count += 1;
-    //         }
-    //     }
-    //
-    //     count
-    // }
 
     fn add_player(&mut self, player: Player) {
         self.players.push(player);
@@ -269,10 +224,10 @@ impl BrainClump {
 
         let result: Vec<f64> = network.fire(inputs);
 
-        warn!("Player: {:?}, Results: {:?}", player, result);
+        // warn!("Player: {:?}, Results: {:?}", player, result);
 
-        let x = result.get(0).unwrap_or_else(|| panic!("Panic")) * 2.0 - 1.0;
-        let y = result.get(1).unwrap_or_else(|| panic!("Panic")) * 2.0 - 1.0;
+        let x: f64 = *result.get(0).unwrap_or_else(|| panic!("Panic"));
+        let y: f64 = *result.get(1).unwrap_or_else(|| panic!("Panic"));
 
         let atan = y.atan2(x);
 
@@ -306,7 +261,7 @@ impl BrainClump {
     }
 
     fn reward(&mut self, reward: (Player, i64)) {
-        warn!("Finished Game");
+        // warn!("Finished Game");
         self.prep_reward(reward);
 
         // warn!("Used Indices: {:?}, Next Gen Len: {:?}", self.used_indices.len(), self.trainer.get_next_generation().len());
@@ -319,7 +274,7 @@ impl BrainClump {
     }
 
     fn train(&mut self) {
-        warn!("Training Next Generation");
+        debug!("Training Next Generation");
         let mut rewards: HashMap<usize, i64> = HashMap::new();
 
         for reward in self.rewards.drain(..) {
@@ -335,7 +290,7 @@ impl BrainClump {
             rewards.insert(reward.0, sum + reward.1);
         }
         for reward in &rewards {
-            warn!("Index: {:?}, Fitness: {:?}", reward.0, reward.1);
+            debug!("Index: {:?}, Fitness: {:?}", reward.0, reward.1);
         }
         self.trainer.train(rewards);
         // warn!("Clearing Used Indices");
@@ -360,7 +315,7 @@ impl<'a, 'b> AiSystem {
 
         let input_size = 2;
 
-        let network_size = vec![4, 7, 9, 20, 9, 7, 5, 2];
+        let network_size = vec![4, 7, 9, 20, 45, 20, 9, 7, 5, 2];
 
         let min_weight = -1.0;
 
@@ -380,7 +335,7 @@ impl<'a, 'b> AiSystem {
                                                                                    max_weight,
                                                                                    min_bias,
                                                                                    max_bias)));
-        let network_size = vec![4, 7, 9, 20, 9, 7, 5, 2];
+        let network_size = vec![4, 7, 9, 20, 45, 20, 9, 7, 5, 2];
         brain_type.insert(Brain::Flee,
                           BrainClump::load(Brain::Flee).unwrap_or(BrainClump::new(network_count,
                                                                                   input_size,
@@ -398,7 +353,7 @@ impl<'a, 'b> AiSystem {
             brain_mapper: HashMap::new(),
         };
 
-        // system.map_player_to_brain(Player::One, Brain::Chase);
+        system.map_player_to_brain(Player::One, Brain::Chase);
         system.map_player_to_brain(Player::Two, Brain::Flee);
 
         system.prep_player_indices();

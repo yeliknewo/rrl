@@ -33,10 +33,10 @@ use event_enums::main_x_game::MainToGame;
 use event_clump::make_event_clumps;
 use game::Game;
 
-pub fn start_no_render() {
+pub fn start_no_render(fixed_delta: Option<f64>) {
     let (mut front_event_clump, back_event_clump) = make_event_clumps();
 
-    let game = Game::new_no_render(back_event_clump);
+    let game = Game::new_no_render(back_event_clump, fixed_delta);
 
     thread::spawn(|| {
         let mut game = game;
@@ -72,11 +72,11 @@ pub fn start_no_render() {
     }
 }
 
-pub fn start_glutin() {
+pub fn start_glutin(fixed_delta: Option<f64>) {
     use graphics::rl_glutin::build_window;
     use handle_events::glutin::handle_events;
 
-    warn!("Starting Core Start");
+    debug!("Starting Core Start");
 
     let (mut front_event_clump, back_event_clump) = make_event_clumps();
 
@@ -120,7 +120,8 @@ pub fn start_glutin() {
                          back_event_clump,
                          ortho_helper,
                          out_color,
-                         out_depth);
+                         out_depth,
+                         fixed_delta);
 
     // warn!("Making Game Thread");
     let game_handle = thread::spawn(|| {
@@ -182,7 +183,7 @@ pub fn start_glutin() {
     front_event_clump.get_mut_ai().unwrap_or_else(|| panic!("Ai was none")).send_to(MainToAi::Save);
     match front_event_clump.get_mut_ai().unwrap_or_else(|| panic!("Ai was none")).recv_from() {
         MainFromAi::Saved => {
-            warn!("Saved Neurons");
+            warn!("Tried to save, might have worked");
         }
     }
     front_event_clump.get_mut_game()
@@ -192,11 +193,11 @@ pub fn start_glutin() {
     game_handle.join().unwrap_or_else(|err| panic!("Error: {:?}", err));
 }
 
-pub fn start_sdl2() {
+pub fn start_sdl2(fixed_delta: Option<f64>) {
     use graphics::rl_sdl2::build_window;
     use handle_events::sdl2::handle_events;
 
-    warn!("Starting Core Start");
+    debug!("Starting Core Start");
 
     let (mut front_event_clump, back_event_clump) = make_event_clumps();
 
@@ -240,7 +241,8 @@ pub fn start_sdl2() {
                          back_event_clump,
                          ortho_helper,
                          out_color,
-                         out_depth);
+                         out_depth,
+                         fixed_delta);
 
     // warn!("Making Game Thread");
     let game_handle = thread::spawn(|| {
@@ -302,7 +304,7 @@ pub fn start_sdl2() {
     front_event_clump.get_mut_ai().unwrap_or_else(|| panic!("Ai was none")).send_to(MainToAi::Save);
     match front_event_clump.get_mut_ai().unwrap_or_else(|| panic!("Ai was none")).recv_from() {
         MainFromAi::Saved => {
-            warn!("Saved Neurons");
+            warn!("Tried to save, might have worked");
         }
     }
     front_event_clump.get_mut_game()

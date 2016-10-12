@@ -37,30 +37,24 @@ impl RenderSystem {
                       packet: &Packet,
                       texture: GlTexture)
                       -> RenderId {
-        warn!("Creating Shader Set");
         let shader_set = factory.create_shader_set(self.shaders.get_vertex_shader(),
                                self.shaders.get_fragment_shader())
             .unwrap_or_else(|err| panic!("Create Shader Set Error: {:?}", err));
 
-        warn!("Creating Program");
         let program = factory.create_program(&shader_set)
             .unwrap_or_else(|err| panic!("Create Program Error: {:?}", err));
 
-        warn!("Creating Pipeline from Program");
         let pso = factory.create_pipeline_from_program(&program,
                                           Primitive::TriangleList,
                                           packet.get_rasterizer(),
                                           pipe::new())
             .unwrap_or_else(|err| panic!("Create Pipeline from Program Error: {:?}", err));
 
-        warn!("Creating Sampler Info");
         let sampler_info = SamplerInfo::new(FilterMethod::Scale, WrapMode::Mirror);
 
-        warn!("Creating Vertex Buffer");
         let (vbuf, slice) =
             factory.create_vertex_buffer_with_slice(packet.get_vertices(), packet.get_indices());
 
-        warn!("Creating Pipe Data");
         let data = pipe::Data {
             vbuf: vbuf,
             spritesheet: (texture, factory.create_sampler(sampler_info)),
@@ -70,15 +64,12 @@ impl RenderSystem {
             out_depth: self.out_depth.clone(),
         };
 
-        warn!("Getting Bundles as Mutable");
         let mut bundles = Arc::get_mut(&mut self.bundles).unwrap_or_else(|| panic!("Arc Shit"));
 
         let id = bundles.len();
 
-        warn!("Adding new bundle to Bundles");
         bundles.push(Bundle::new(slice, pso, data));
 
-        warn!("Returning Render Id");
         RenderId::new(id)
     }
 

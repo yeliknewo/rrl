@@ -10,7 +10,7 @@ static VERTEX: &'static [u8] = include_bytes!("shaders/spritesheet_150_v.glsl");
 static FRAGMENT: &'static [u8] = include_bytes!("shaders/spritesheet_150_f.glsl");
 
 pub fn make_shaders() -> Shaders {
-    warn!("Making Shaders");
+    debug!("Making Shaders");
     Shaders::new_from_bytes(VERTEX, FRAGMENT)
 }
 

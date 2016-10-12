@@ -2,7 +2,7 @@ pub extern crate graphics;
 
 pub mod crates {
     pub use ::graphics;
-    pub use graphics::crates::{gfx, gfx_device_gl, glutin, gfx_window_glutin, sdl2,
+    pub use graphics::crates::{getopts, gfx, gfx_device_gl, glutin, gfx_window_glutin, sdl2,
                                gfx_window_sdl, find_folder, image, utils, cgmath, rustc_serialize};
 }
 

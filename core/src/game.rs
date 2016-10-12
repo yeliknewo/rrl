@@ -26,7 +26,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new_no_render(mut back_event_clump: BackEventClump) -> Game {
+    pub fn new_no_render(mut back_event_clump: BackEventClump, fixed_delta: Option<f64>) -> Game {
         let mut planner = {
             let mut world = World::new();
 
@@ -100,7 +100,7 @@ impl Game {
             fps_counter: FpsCounter::new(),
             main_back_channel: back_event_clump.take_game()
                 .unwrap_or_else(|| panic!("Game was none")),
-            delta: Some(1.0 / 6.0),
+            delta: fixed_delta,
         }
     }
 
@@ -108,7 +108,8 @@ impl Game {
                mut back_event_clump: BackEventClump,
                ortho_helper: OrthographicHelper,
                out_color: OutColor,
-               out_depth: OutDepth)
+               out_depth: OutDepth,
+               fixed_delta: Option<f64>)
                -> Game {
         let mut planner = {
             let mut world = World::new();
@@ -219,7 +220,7 @@ impl Game {
             fps_counter: FpsCounter::new(),
             main_back_channel: back_event_clump.take_game()
                 .unwrap_or_else(|| panic!("Game was none")),
-            delta: None,
+            delta: fixed_delta,
         }
     }
 

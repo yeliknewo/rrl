@@ -1,6 +1,5 @@
 #[macro_use]
 pub extern crate log;
-pub extern crate getopts;
 
 pub extern crate components;
 pub extern crate event;
@@ -8,15 +7,15 @@ pub extern crate event_enums;
 pub extern crate neural;
 
 pub mod crates {
-    pub use ::{getopts, components, event_enums, event, neural};
-    pub use event_enums::crates::{graphics, gfx, gfx_device_gl, glutin, gfx_window_glutin, sdl2,
-                                  gfx_window_sdl, find_folder, image, utils, cgmath,
-                                  rustc_serialize};
+    pub use ::{components, event_enums, event, neural};
+    pub use event_enums::crates::{getopts, graphics, gfx, gfx_device_gl, glutin,
+                                  gfx_window_glutin, sdl2, gfx_window_sdl, find_folder, image,
+                                  utils, cgmath, rustc_serialize};
     pub use neural::crates::rand;
     pub use components::crates::specs;
 }
 
-pub use crates::{rustc_serialize, specs, utils, cgmath, gfx, graphics, find_folder, rand};
+pub use crates::{getopts, rustc_serialize, specs, utils, cgmath, gfx, graphics, find_folder, rand};
 
 pub mod ai;
 pub mod control;

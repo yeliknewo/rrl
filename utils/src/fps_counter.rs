@@ -24,7 +24,7 @@ impl FpsCounter {
             if self.frames < 55 {
                 warn!("FPS Low: {}", self.frames);
             } else {
-                warn!("FPS: {}", self.frames);
+                debug!("FPS: {}", self.frames);
             }
             self.frames = 0;
         }

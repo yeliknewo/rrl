@@ -15,7 +15,7 @@ pub extern crate utils;
 pub mod crates {
     pub use ::{gfx, gfx_device_gl, glutin, gfx_window_glutin, sdl2, gfx_window_sdl, find_folder,
                image, utils};
-    pub use utils::crates::{cgmath, rustc_serialize};
+    pub use utils::crates::{getopts, cgmath, rustc_serialize};
 }
 
 pub use crates::{cgmath, rustc_serialize};

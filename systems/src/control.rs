@@ -17,10 +17,8 @@ pub struct ControlSystem {
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 enum RepeatEvent {
-    Up(Player),
-    Down(Player),
-    Left(Player),
-    Right(Player),
+    Y(Player),
+    X(Player),
     Joy(Player),
 }
 
@@ -52,10 +50,39 @@ impl ControlSystem {
             MainToControl::Right(amount, player) => {
                 self.send_repeat(ControlToPlayer::Right(amount, player))
             }
-            MainToControl::Joy(x, y, player) => {
-                self.send_repeat(ControlToPlayer::Joy(x, y, player))
-            }
+            MainToControl::JoyX(x, player) => self.handle_joy(Some(x), None, player),
+            MainToControl::JoyY(y, player) => self.handle_joy(None, Some(y), player),
         }
+    }
+
+    fn handle_joy(&mut self, x_opt: Option<f64>, y_opt: Option<f64>, player: Player) {
+        let x = {
+            match x_opt {
+                Some(x) => x,
+                None => {
+                    match self.repeat_map
+                        .get(&RepeatEvent::Joy(player)) {
+                        Some(&ControlToPlayer::Joy(x, _, _)) => x,
+                        _ => 0.0,
+                    }
+                }
+            }
+        };
+
+        let y = {
+            match y_opt {
+                Some(y) => y,
+                None => {
+                    match self.repeat_map
+                        .get(&RepeatEvent::Joy(player)) {
+                        Some(&ControlToPlayer::Joy(_, y, _)) => y,
+                        _ => 0.0,
+                    }
+                }
+            }
+        };
+
+        self.send_repeat(ControlToPlayer::Joy(x, y, player));
     }
 
     fn process_ai_event(&mut self, event: AiToControl) {
@@ -77,16 +104,16 @@ impl ControlSystem {
     fn send_repeat(&mut self, event: ControlToPlayer) {
         match &event {
             &ControlToPlayer::Up(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Up(player), event)
+                self.repeat_map.insert(RepeatEvent::Y(player), event)
             }
             &ControlToPlayer::Down(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Down(player), event)
+                self.repeat_map.insert(RepeatEvent::Y(player), event)
             }
             &ControlToPlayer::Right(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Right(player), event)
+                self.repeat_map.insert(RepeatEvent::X(player), event)
             }
             &ControlToPlayer::Left(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Left(player), event)
+                self.repeat_map.insert(RepeatEvent::X(player), event)
             }
             &ControlToPlayer::Joy(_, _, player) => {
                 self.repeat_map.insert(RepeatEvent::Joy(player), event)

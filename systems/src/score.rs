@@ -1,6 +1,6 @@
 use components::{Transform, CompPlayer, CompMoving};
 use rand::{thread_rng, Rng};
-use cgmath::{Vector3, MetricSpace};
+use cgmath::Vector3;
 use specs::{System, RunArg, Join};
 use utils::{Delta, Player, Coord};
 use event::FrontChannel;

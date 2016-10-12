@@ -119,20 +119,20 @@ pub mod sdl2 {
                         }
                     }
                     Event::ControllerAxisMotion { timestamp, which, axis, value } => {
-                        // warn!("Axis Motion");
+                        debug!("Axis Motion");
                         match axis {
                             Axis::LeftX => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
                                     .send_to(if value >= 0 {
-                                        MainToControl::Right((value / ::std::i16::MAX) as f64,
-                                                             match which {
-                                                                 0 => Player::One,
-                                                                 1 => Player::Two,
-                                                                 _ => continue,
-                                                             })
+                                        MainToControl::JoyX((value as f64 / ::std::i16::MAX as f64),
+                                                            match which {
+                                                                0 => Player::One,
+                                                                1 => Player::Two,
+                                                                _ => continue,
+                                                            })
                                     } else {
-                                        MainToControl::Left((value / ::std::i16::MIN) as f64,
+                                        MainToControl::JoyX((value as f64 / ::std::i16::MAX as f64),
                                                             match which {
                                                                 0 => Player::One,
                                                                 1 => Player::Two,
@@ -144,14 +144,16 @@ pub mod sdl2 {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
                                     .send_to(if value >= 0 {
-                                        MainToControl::Up((value / ::std::i16::MAX) as f64,
-                                                          match which {
-                                                              0 => Player::One,
-                                                              1 => Player::Two,
-                                                              _ => continue,
-                                                          })
+                                        MainToControl::JoyY(-(value as f64 /
+                                                              ::std::i16::MAX as f64),
+                                                            match which {
+                                                                0 => Player::One,
+                                                                1 => Player::Two,
+                                                                _ => continue,
+                                                            })
                                     } else {
-                                        MainToControl::Down((value / ::std::i16::MIN) as f64,
+                                        MainToControl::JoyY(-(value as f64 /
+                                                              ::std::i16::MAX as f64),
                                                             match which {
                                                                 0 => Player::One,
                                                                 1 => Player::Two,
@@ -163,7 +165,7 @@ pub mod sdl2 {
                         }
                     }
                     Event::ControllerButtonDown { timestamp, which, button } => {
-                        // warn!("Button Down");
+                        debug!("Button Down");
                         match button {
                             Button::DPadRight => {
                                 front_event_clump.get_mut_control()
@@ -264,7 +266,7 @@ pub mod sdl2 {
                         }
                     }
                     Event::ControllerDeviceAdded { timestamp, which } => {
-                        // warn!("Added, Which: {:?}", which);
+                        debug!("Added, Which: {:?}", which);
                         if let Some(player) = Player::map_number(which) {
                             controllers.insert(which,
                                                (game_controller.open(which as u32)

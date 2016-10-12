@@ -2,6 +2,7 @@
 name = "rl-game-4"
 version = "0.1.0"
 dependencies = [
+ "configger 0.1.0",
  "core 0.1.0",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -105,6 +106,10 @@ dependencies = [
  "specs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "utils 0.1.0",
 ]
+
+[[package]]
+name = "configger"
+version = "0.1.0"
 
 [[package]]
 name = "core"
@@ -785,7 +790,6 @@ dependencies = [
  "event 0.1.0",
  "event_enums 0.1.0",
  "find_folder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "getopts 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "neural 0.1.0",
 ]
@@ -866,6 +870,7 @@ name = "utils"
 version = "0.1.0"
 dependencies = [
  "cgmath 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "getopts 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

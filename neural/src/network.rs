@@ -183,7 +183,7 @@ impl Neuron {
     }
 
     fn sigmoid(input: f64) -> f64 {
-        1.0 / (1.0 + (-input).exp())
+        2.0 / (1.0 + (-input).exp()) - 1.0
     }
 
     fn fire(&self, inputs: &Vec<f64>) -> f64 {
