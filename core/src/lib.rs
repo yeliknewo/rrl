@@ -7,14 +7,20 @@ pub extern crate systems;
 pub mod crates {
     pub use ::{art, time};
     pub use systems::crates::{gfx, graphics, utils, event_enums, getopts, components, event,
-                              neural, gfx_device_gl, glutin, gfx_window_glutin, sdl2,
-                              gfx_window_sdl, find_folder, image, cgmath, rustc_serialize, rand,
-                              specs};
+                              neural, gfx_device_gl, find_folder, image, cgmath, rustc_serialize,
+                              rand, specs};
     pub use art::crates;
+    #[cfg(feature = "g_glutin")]
+    pub use systems::crates::{glutin, gfx_window_glutin};
+    #[cfg(feature = "g_sdl2")]
+    pub use systems::crates::{sdl2, gfx_window_sdl};
 }
 
-pub use crates::{components, event, gfx, graphics, utils, event_enums, specs, cgmath, find_folder,
-                 sdl2, glutin};
+pub use crates::{components, event, gfx, graphics, utils, event_enums, specs, cgmath, find_folder};
+#[cfg(feature = "g_glutin")]
+pub use crates::glutin;
+#[cfg(feature = "g_sdl2")]
+pub use crates::sdl2;
 
 mod event_clump;
 mod game;
@@ -72,6 +78,7 @@ pub fn start_no_render(fixed_delta: Option<f64>) {
     }
 }
 
+#[cfg(feature = "g_glutin")]
 pub fn start_glutin(fixed_delta: Option<f64>) {
     use graphics::rl_glutin::build_window;
     use handle_events::glutin::handle_events;
@@ -193,6 +200,7 @@ pub fn start_glutin(fixed_delta: Option<f64>) {
     game_handle.join().unwrap_or_else(|err| panic!("Error: {:?}", err));
 }
 
+#[cfg(feature = "g_sdl2")]
 pub fn start_sdl2(fixed_delta: Option<f64>) {
     use graphics::rl_sdl2::build_window;
     use handle_events::sdl2::handle_events;

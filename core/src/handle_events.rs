@@ -1,3 +1,4 @@
+#[cfg(feature = "g_glutin")]
 pub mod glutin {
     use graphics::GfxWindow;
     use graphics::rl_glutin::{Window, Extras};
@@ -27,6 +28,7 @@ pub mod glutin {
     }
 }
 
+#[cfg(feature = "g_sdl2")]
 pub mod sdl2 {
     use std::collections::HashMap;
     use sdl2::event::{Event, WindowEventId};

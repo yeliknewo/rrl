@@ -33,11 +33,19 @@ fn main() {
 
     debug!("Getting Graphics");
 
-    match g {
+    start(delta_time, g);
+
+    debug!("Game exited Successfully");
+}
+
+#[cfg(feature = "g_glutin")]
+#[cfg(feature = "g_sdl2")]
+fn start(delta_time: Option<f64>, string: Option<&String>) {
+    match string {
         Some(g_string) => {
             if g_string.contains("glutin") {
                 core::start_glutin(delta_time);
-            } else if g_string.contains("sdl") {
+            } else if g_string.contains("sdl2") {
                 core::start_sdl2(delta_time);
             } else {
                 core::start_no_render(delta_time);
@@ -45,5 +53,40 @@ fn main() {
         }
         None => core::start_no_render(delta_time),
     }
-    debug!("Game exited Successfully");
+}
+
+#[cfg(feature = "g_glutin")]
+#[cfg(not(feature = "g_sdl2"))]
+fn start(delta_time: Option<f64>, string: Option<&String>) {
+    match string {
+        Some(g_string) => {
+            if g_string.contains("glutin") {
+                core::start_glutin(delta_time);
+            } else {
+                core::start_no_render(delta_time);
+            }
+        }
+        None => core::start_no_render(delta_time),
+    }
+}
+
+#[cfg(feature = "g_sdl2")]
+#[cfg(not(feature = "g_glutin"))]
+fn start(delta_time: Option<f64>, string: Option<&String>) {
+    match string {
+        Some(g_string) => {
+            if g_string.contains("sdl2") {
+                core::start_sdl2(delta_time);
+            } else {
+                core::start_no_render(delta_time);
+            }
+        }
+        None => core::start_no_render(delta_time),
+    }
+}
+
+#[cfg(not(feature = "g_sdl2"))]
+#[cfg(not(feature = "g_glutin"))]
+fn start(delta_time: Option<f64>, string: Option<&String>) {
+    core::start_no_render(delta_time);
 }

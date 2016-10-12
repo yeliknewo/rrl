@@ -6,12 +6,19 @@ authors = ["Kiley Owen <yelikdev@gmail.com>"]
 [dependencies]
 gfx = "0.12.1"
 gfx_device_gl = "0.11.2"
-gfx_window_glutin = "0.12.0"
-gfx_window_sdl = "0.3.0"
-glutin = "0.6.1"
+gfx_window_glutin = { version = "0.12.0", optional = true }
+gfx_window_sdl = { version = "0.3.0", optional = true }
+glutin = { version = "0.6.1", optional = true }
 image = "0.10.3"
 log = "0.3.6"
-sdl2 = "0.18.0"
+sdl2 = { version = "0.18.0", optional = true }
 find_folder = "0.3.0"
 
 utils = { path="../utils" }
+
+[features]
+g_glutin = ["glutin", "gfx_window_glutin"]
+g_sdl2 = ["sdl2", "gfx_window_sdl"]
+both = ["g_glutin", "g_sdl2"]
+
+default = []

@@ -10,3 +10,7 @@ components = { path="../components" }
 event = { path="../event" }
 event_enums = { path="../event_enums" }
 neural = { path="../neural" }
+
+[features]
+g_glutin = ["event_enums/g_glutin"]
+g_sdl2 = ["event_enums/g_sdl2"]

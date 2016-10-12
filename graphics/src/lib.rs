@@ -3,9 +3,13 @@ extern crate log;
 #[macro_use]
 pub extern crate gfx;
 pub extern crate gfx_device_gl;
+#[cfg(feature = "g_glutin")]
 pub extern crate glutin;
+#[cfg(feature = "g_glutin")]
 pub extern crate gfx_window_glutin;
+#[cfg(feature = "g_sdl2")]
 pub extern crate sdl2;
+#[cfg(feature = "g_sdl2")]
 pub extern crate gfx_window_sdl;
 pub extern crate find_folder;
 pub extern crate image;
@@ -13,15 +17,20 @@ pub extern crate image;
 pub extern crate utils;
 
 pub mod crates {
-    pub use ::{gfx, gfx_device_gl, glutin, gfx_window_glutin, sdl2, gfx_window_sdl, find_folder,
-               image, utils};
     pub use utils::crates::{getopts, cgmath, rustc_serialize};
+    pub use ::{gfx, gfx_device_gl, find_folder, image, utils};
+    #[cfg(feature = "g_sdl2")]
+    pub use ::{sdl2, gfx_window_sdl};
+    #[cfg(feature = "g_glutin")]
+    pub use ::{glutin, gfx_window_glutin};
 }
 
 pub use crates::{cgmath, rustc_serialize};
 
 pub mod pipeline;
+#[cfg(feature = "g_glutin")]
 pub mod rl_glutin;
+#[cfg(feature = "g_sdl2")]
 pub mod rl_sdl2;
 pub mod shaders;
 pub mod texture;
@@ -42,8 +51,6 @@ pub type GlEncoder = gfx::Encoder<GlResources, GlCommandBuffer>;
 pub type GlTexture = gfx::handle::ShaderResourceView<GlResources, [f32; 4]>;
 pub type WindowSettings<'a> = (&'a str, u32, u32);
 
-
-
 pub struct GfxWindow<W, T> {
     out_color: OutColor,
     out_depth: OutDepth,
@@ -53,12 +60,14 @@ pub struct GfxWindow<W, T> {
     extras: T,
 }
 
+#[cfg(feature = "g_glutin")]
 impl<T> GfxWindow<glutin::Window, T> {
     pub fn swap_buffers(&mut self) {
         self.get_mut_window().swap_buffers().unwrap_or_else(|err| panic!("{:?}", err));
     }
 }
 
+#[cfg(feature = "g_sdl2")]
 impl<T> GfxWindow<sdl2::video::Window, T> {
     pub fn swap_buffers(&mut self) {
         self.get_mut_window().gl_swap_window();

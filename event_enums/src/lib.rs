@@ -2,8 +2,12 @@ pub extern crate graphics;
 
 pub mod crates {
     pub use ::graphics;
-    pub use graphics::crates::{getopts, gfx, gfx_device_gl, glutin, gfx_window_glutin, sdl2,
-                               gfx_window_sdl, find_folder, image, utils, cgmath, rustc_serialize};
+    pub use graphics::crates::{getopts, gfx, gfx_device_gl, find_folder, image, utils, cgmath,
+                               rustc_serialize};
+    #[cfg(feature = "g_sdl2")]
+    pub use graphics::crates::{sdl2, gfx_window_sdl};
+    #[cfg(feature = "g_glutin")]
+    pub use graphics::crates::{gfx_window_glutin, glutin};
 }
 
 pub use crates::utils;

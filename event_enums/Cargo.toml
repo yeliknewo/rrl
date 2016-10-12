@@ -5,3 +5,7 @@ authors = ["Kiley Owen"]
 
 [dependencies]
 graphics = { path="../graphics" }
+
+[features]
+g_glutin = ["graphics/g_glutin"]
+g_sdl2 = ["graphics/g_sdl2"]

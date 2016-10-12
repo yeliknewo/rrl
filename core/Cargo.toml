@@ -8,3 +8,7 @@ log = "0.3.6"
 time = "0.1.35"
 art = { path="../art" }
 systems = { path="../systems" }
+
+[features]
+g_glutin = ["systems/g_glutin"]
+g_sdl2 = ["systems/g_sdl2"]

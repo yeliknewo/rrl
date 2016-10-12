@@ -8,11 +8,14 @@ pub extern crate neural;
 
 pub mod crates {
     pub use ::{components, event_enums, event, neural};
-    pub use event_enums::crates::{getopts, graphics, gfx, gfx_device_gl, glutin,
-                                  gfx_window_glutin, sdl2, gfx_window_sdl, find_folder, image,
+    pub use event_enums::crates::{getopts, graphics, gfx, gfx_device_gl, find_folder, image,
                                   utils, cgmath, rustc_serialize};
     pub use neural::crates::rand;
     pub use components::crates::specs;
+    #[cfg(feature = "g_glutin")]
+    pub use event_enums::crates::{glutin, gfx_window_glutin};
+    #[cfg(feature = "g_sdl2")]
+    pub use event_enums::crates::{sdl2, gfx_window_sdl};
 }
 
 pub use crates::{getopts, rustc_serialize, specs, utils, cgmath, gfx, graphics, find_folder, rand};
