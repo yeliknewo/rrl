@@ -45,14 +45,14 @@ impl System<Delta> for ScoreSystem {
             player_info.push((player.get_player(), pos));
             if pos.x.abs() > 10.0 || pos.y.abs() > 10.0 {
                 self.feeder_front_channel
-                    .send_to(ScoreToFeeder::Lose(player.get_player(), 30.0, -30.0));
+                    .send_to(ScoreToFeeder::Lose(player.get_player(), 0.0, -150.0));
                 done = true;
                 break;
             }
         }
 
         if self.time > 30.0 {
-            self.feeder_front_channel.send_to(ScoreToFeeder::LoseBoth(-30.0, 30.0));
+            self.feeder_front_channel.send_to(ScoreToFeeder::LoseBoth(-300.0, -300.0));
             done = true;
         }
 
@@ -85,7 +85,7 @@ impl System<Delta> for ScoreSystem {
                 Player::One => {
                     if my_pos.distance(other_pos) < 1.0 {
                         self.feeder_front_channel
-                            .send_to(ScoreToFeeder::Lose(other_player, 300.0, -30.0));
+                            .send_to(ScoreToFeeder::Lose(other_player, 300.0, -60.0));
                         done = true;
                     }
                 }
@@ -96,7 +96,7 @@ impl System<Delta> for ScoreSystem {
                 Player::One => {
                     if other_pos.distance(my_pos) < 1.0 {
                         self.feeder_front_channel
-                            .send_to(ScoreToFeeder::Lose(my_player, 300.0, -30.0));
+                            .send_to(ScoreToFeeder::Lose(my_player, 300.0, -60.0));
                         done = true;
                     }
                 }

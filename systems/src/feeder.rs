@@ -6,8 +6,8 @@ use event::{FrontChannel, BackChannel};
 use event_enums::feeder_x_ai::{FeederToAi, FeederFromAi};
 use event_enums::score_x_feeder::{ScoreToFeeder, ScoreFromFeeder};
 
-const DISTANCE_WEIGHT: f32 = 1.0;
-const TIME_WEIGHT: f64 = 50.0;
+const DISTANCE_WEIGHT: f32 = 5.0;
+const TIME_WEIGHT: f64 = 1.0;
 
 pub struct FeederSystem {
     ai_front_channel: FrontChannel<FeederToAi, FeederFromAi>,
@@ -86,12 +86,8 @@ impl System<Delta> for FeederSystem {
                     .collect::<Vec<Vector3<Coord>>>();
                 if other.len() == 1 {
                     match me.0 {
-                        Player::One => {
-                            Some((me.0, ((-me.1.distance(other[0])) * DISTANCE_WEIGHT) as i64))
-                        }
-                        Player::Two => {
-                            Some((me.0, ((me.1.distance(other[0])) * DISTANCE_WEIGHT) as i64))
-                        }
+                        Player::One => Some((me.0, 0)),
+                        Player::Two => Some((me.0, 0)),
                     }
                 } else {
                     None
