@@ -31,20 +31,39 @@ fn main() {
         }
     };
 
-    debug!("Getting Graphics");
+    start(g, delta_time);
 
-    match g {
-        Some(g_string) => {
-            if g_string.contains("glutin") {
-                core::start_glutin(delta_time);
-            } else if g_string.contains("sdl") {
-                core::start_sdl2(delta_time);
-            } else {
-                core::start_no_render(delta_time);
-            }
-        }
-        None => core::start_no_render(delta_time),
-    }
-    core::start_sdl2(delta_time);
     debug!("Game exited Successfully");
+}
+
+#[cfg(graphics = "not_sdl2")]
+fn start(graphics_type: Option<String>, delta_time: Option<f64>) {
+    match graphics_type {
+        GraphicsType::Glutin => core::start_glutin(delta_time),
+        GraphicsType::None => core::start_no_render(delta_time),
+    }
+}
+
+#[cfg(graphics = "all")]
+fn start(graphics_type: Option<String>, delta_time: Option<f64>) {
+    match graphics_type {
+        GraphicsType::Sdl2 => core::start_sdl2(delta_time),
+        GraphicsType::Glutin => core::start_glutin(delta_time),
+        GraphicsType::None => core::start_no_render(delta_time),
+    }
+}
+
+#[cfg(graphics = "none")]
+fn start(_: Option<String>, delta_time: Option<f64>) {
+    core::start_no_render(delta_time)
+}
+
+#[cfg(graphics = "glutin")]
+fn start(_: Option<String>, delta_time: Option<f64>) {
+    core::start_glutin(delta_time)
+}
+
+#[cfg(graphics = "sdl2")]
+fn start(_: Option<String>, delta_time: Option<f64>) {
+    core::start_sdl2(delta_time)
 }

@@ -1,6 +1,6 @@
 use components::{Transform, CompPlayer, CompMoving};
 use rand::{thread_rng, Rng};
-use cgmath::Vector3;
+use cgmath::{Vector3, MetricSpace};
 use specs::{System, RunArg, Join};
 use utils::{Delta, Player, Coord};
 use event::FrontChannel;
@@ -44,14 +44,15 @@ impl System<Delta> for ScoreSystem {
             let pos = transform.get_pos();
             player_info.push((player.get_player(), pos));
             if pos.x.abs() > 10.0 || pos.y.abs() > 10.0 {
-                self.feeder_front_channel.send_to(ScoreToFeeder::Lose(player.get_player(), 0.0));
+                self.feeder_front_channel
+                    .send_to(ScoreToFeeder::Lose(player.get_player(), 30.0, -30.0));
                 done = true;
                 break;
             }
         }
 
         if self.time > 30.0 {
-            self.feeder_front_channel.send_to(ScoreToFeeder::LoseBoth);
+            self.feeder_front_channel.send_to(ScoreToFeeder::LoseBoth(-30.0, 30.0));
             done = true;
         }
 
@@ -60,51 +61,68 @@ impl System<Delta> for ScoreSystem {
             for (player, mut transform, mut moving) in (&players, &mut transforms, &mut movings)
                 .iter() {
                 transform.set_pos(match player.get_player() {
-                    Player::One => Vector3::new(thread_rng().gen_range(-9.0, 9.0), 9.0, 0.0),
-                    Player::Two => Vector3::new(thread_rng().gen_range(-9.0, 9.0), -9.0, 0.0),
+                    Player::One => {
+                        Vector3::new(thread_rng().gen_range(-9.0, 9.0),
+                                     thread_rng().gen_range(-9.0, 9.0),
+                                     0.0)
+                    }
+                    Player::Two => {
+                        Vector3::new(thread_rng().gen_range(-9.0, 9.0),
+                                     thread_rng().gen_range(-9.0, 9.0),
+                                     0.0)
+                    }
                 });
                 *moving.get_mut_velocity() = STARTING_VELOCITY;
             }
+        } else {
+            let my_player = player_info.get(0).unwrap_or_else(|| panic!("Panic")).0;
+            let my_pos = player_info.get(0).unwrap_or_else(|| panic!("Panic")).1;
+
+            let other_player = player_info.get(1).unwrap_or_else(|| panic!("Panic")).0;
+            let other_pos = player_info.get(1).unwrap_or_else(|| panic!("Panic")).1;
+
+            match my_player {
+                Player::One => {
+                    if my_pos.distance(other_pos) < 1.0 {
+                        self.feeder_front_channel
+                            .send_to(ScoreToFeeder::Lose(other_player, 300.0, -30.0));
+                        done = true;
+                    }
+                }
+                Player::Two => {}
+            }
+
+            match other_player {
+                Player::One => {
+                    if other_pos.distance(my_pos) < 1.0 {
+                        self.feeder_front_channel
+                            .send_to(ScoreToFeeder::Lose(my_player, 300.0, -30.0));
+                        done = true;
+                    }
+                }
+                Player::Two => {}
+            }
+            if done {
+                self.time = 0.0;
+                for (player, mut transform, mut moving) in (&players,
+                                                            &mut transforms,
+                                                            &mut movings)
+                    .iter() {
+                    transform.set_pos(match player.get_player() {
+                        Player::One => {
+                            Vector3::new(thread_rng().gen_range(-9.0, 9.0),
+                                         thread_rng().gen_range(-9.0, 9.0),
+                                         0.0)
+                        }
+                        Player::Two => {
+                            Vector3::new(thread_rng().gen_range(-9.0, 9.0),
+                                         thread_rng().gen_range(-9.0, 9.0),
+                                         0.0)
+                        }
+                    });
+                    *moving.get_mut_velocity() = STARTING_VELOCITY;
+                }
+            }
         }
-        // else {
-        //     let my_player = player_info.get(0).unwrap_or_else(|| panic!("Panic")).0;
-        //     let my_pos = player_info.get(0).unwrap_or_else(|| panic!("Panic")).1;
-        //
-        //     let other_player = player_info.get(1).unwrap_or_else(|| panic!("Panic")).0;
-        //     let other_pos = player_info.get(1).unwrap_or_else(|| panic!("Panic")).1;
-        //
-        //     match my_player {
-        //         Player::One => {
-        //             if my_pos.distance(other_pos) < 1.0 {
-        //                 self.feeder_front_channel.send_to(ScoreToFeeder::Lose(other_player, 30.0));
-        //                 done = true;
-        //             }
-        //         }
-        //         Player::Two => {}
-        //     }
-        //
-        //     match other_player {
-        //         Player::One => {
-        //             if other_pos.distance(my_pos) < 1.0 {
-        //                 self.feeder_front_channel.send_to(ScoreToFeeder::Lose(my_player, 30.0));
-        //                 done = true;
-        //             }
-        //         }
-        //         Player::Two => {}
-        //     }
-        //     if done {
-        //         self.time = 0.0;
-        //         for (player, mut transform, mut moving) in (&players,
-        //                                                     &mut transforms,
-        //                                                     &mut movings)
-        //             .iter() {
-        //             transform.set_pos(match player.get_player() {
-        //                 Player::One => Vector3::new(thread_rng().gen_range(-9.0, 9.0), 9.0, 0.0),
-        //                 Player::Two => Vector3::new(thread_rng().gen_range(-9.0, 9.0), -9.0, 0.0),
-        //             });
-        //             *moving.get_mut_velocity() = STARTING_VELOCITY;
-        //         }
-        //     }
-        // }
     }
 }

@@ -311,11 +311,11 @@ impl<'a, 'b> AiSystem {
                feeder_back_channel: BackChannel<FeederToAi, FeederFromAi>,
                control_front_channel: FrontChannel<AiToControl, AiFromControl>)
                -> AiSystem {
-        let network_count = 16;
+        let network_count = 32;
 
-        let input_size = 2;
+        let input_size = 4;
 
-        let network_size = vec![4, 7, 9, 20, 45, 20, 9, 7, 5, 2];
+        let network_size = vec![4, 7, 9, 20, 45, 90, 200, 90, 45, 20, 9, 7, 5, 2];
 
         let min_weight = -1.0;
 
@@ -335,7 +335,7 @@ impl<'a, 'b> AiSystem {
                                                                                    max_weight,
                                                                                    min_bias,
                                                                                    max_bias)));
-        let network_size = vec![4, 7, 9, 20, 45, 20, 9, 7, 5, 2];
+        let network_size = vec![4, 7, 9, 20, 45, 90, 200, 90, 45, 20, 9, 7, 5, 2];
         brain_type.insert(Brain::Flee,
                           BrainClump::load(Brain::Flee).unwrap_or(BrainClump::new(network_count,
                                                                                   input_size,

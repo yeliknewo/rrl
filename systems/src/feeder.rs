@@ -7,6 +7,7 @@ use event_enums::feeder_x_ai::{FeederToAi, FeederFromAi};
 use event_enums::score_x_feeder::{ScoreToFeeder, ScoreFromFeeder};
 
 const DISTANCE_WEIGHT: f32 = 1.0;
+const TIME_WEIGHT: f64 = 50.0;
 
 pub struct FeederSystem {
     ai_front_channel: FrontChannel<FeederToAi, FeederFromAi>,
@@ -35,18 +36,29 @@ impl System<Delta> for FeederSystem {
 
         if let Some(event) = self.score_back_channel.try_recv_to() {
             match event {
-                ScoreToFeeder::Lose(loser, _winner_delta_time) => {
+                ScoreToFeeder::Lose(loser, time_add_winner, time_add_loser) => {
                     self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
                         match loser {
-                            Player::One => vec![(Player::One, -10000), (Player::Two, 0)],
-                            Player::Two => vec![(Player::One, 0), (Player::Two, -10000)],
+                            Player::One => {
+                                vec![(Player::One,
+                                      ((time_add_loser + self.time) * TIME_WEIGHT) as i64),
+                                     (Player::Two,
+                                      ((time_add_winner + self.time) * TIME_WEIGHT) as i64)]
+                            }
+                            Player::Two => {
+                                vec![(Player::One,
+                                      ((time_add_winner + self.time) * TIME_WEIGHT) as i64),
+                                     (Player::Two,
+                                      ((time_add_loser + self.time) * TIME_WEIGHT) as i64)]
+                            }
                         }
                     }));
                     self.time = 0.0;
                 }
-                ScoreToFeeder::LoseBoth => {
+                ScoreToFeeder::LoseBoth(time_add_one, time_add_two) => {
                     self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
-                        vec![(Player::One, 10000000), (Player::Two, 1000000)]
+                        vec![(Player::One, ((time_add_one + self.time) * TIME_WEIGHT) as i64),
+                             (Player::Two, ((time_add_two + self.time) * TIME_WEIGHT) as i64)]
                     }));
                     self.time = 0.0;
                 }
@@ -59,7 +71,7 @@ impl System<Delta> for FeederSystem {
             player_data.push((player.get_player(), transform.get_pos(), moving.get_velocity()));
         }
 
-        let center = Vector3::new(0.0, 0.0, 0.0);
+        // let center = Vector3::new(0.0, 0.0, 0.0);
 
         self.ai_front_channel.send_to(FeederToAi::Reward(player_data.iter()
             .filter_map(|me| {
@@ -75,10 +87,10 @@ impl System<Delta> for FeederSystem {
                 if other.len() == 1 {
                     match me.0 {
                         Player::One => {
-                            Some((me.0, ((30.0 - me.1.distance(center)) * DISTANCE_WEIGHT) as i64))
+                            Some((me.0, ((-me.1.distance(other[0])) * DISTANCE_WEIGHT) as i64))
                         }
                         Player::Two => {
-                            Some((me.0, ((30.0 - me.1.distance(center)) * DISTANCE_WEIGHT) as i64))
+                            Some((me.0, ((me.1.distance(other[0])) * DISTANCE_WEIGHT) as i64))
                         }
                     }
                 } else {
@@ -93,15 +105,15 @@ impl System<Delta> for FeederSystem {
             let world_state: Vec<f64> = match player {
                 Player::One => {
                     let p1_pos = player_data[0].1;
-                    // let p2_pos = player_data[1].1;
-
-                    vec![p1_pos.x as f64, p1_pos.y as f64]//)dot1 as f64, mag as f64, dot2 as f64, mag2 as f64, vel.x as f64, vel.y as f64, self.time)
-                }
-                Player::Two => {
-                    // let p1_pos = player_data[0].1;
                     let p2_pos = player_data[1].1;
 
-                    vec![p2_pos.x as f64, p2_pos.y as f64]//dot1 as f64, mag as f64, dot2 as f64, mag2 as f64, vel.x as f64, vel.y as f64, self.time)
+                    vec![p1_pos.x as f64, p1_pos.y as f64, p2_pos.x as f64, p2_pos.y as f64]//)dot1 as f64, mag as f64, dot2 as f64, mag2 as f64, vel.x as f64, vel.y as f64, self.time)
+                }
+                Player::Two => {
+                    let p1_pos = player_data[0].1;
+                    let p2_pos = player_data[1].1;
+
+                    vec![p2_pos.x as f64, p2_pos.y as f64, p1_pos.x as f64, p1_pos.y as f64]//dot1 as f64, mag as f64, dot2 as f64, mag2 as f64, vel.x as f64, vel.y as f64, self.time)
                 }
             };
 

@@ -33,6 +33,7 @@ use event_enums::main_x_game::MainToGame;
 use event_clump::make_event_clumps;
 use game::Game;
 
+#[cfg(graphics = "none")]
 pub fn start_no_render(fixed_delta: Option<f64>) {
     let (mut front_event_clump, back_event_clump) = make_event_clumps();
 
@@ -72,6 +73,7 @@ pub fn start_no_render(fixed_delta: Option<f64>) {
     }
 }
 
+#[cfg(graphics = "glutin")]
 pub fn start_glutin(fixed_delta: Option<f64>) {
     use graphics::rl_glutin::build_window;
     use handle_events::glutin::handle_events;
@@ -193,6 +195,7 @@ pub fn start_glutin(fixed_delta: Option<f64>) {
     game_handle.join().unwrap_or_else(|err| panic!("Error: {:?}", err));
 }
 
+#[cfg(graphics = "sdl2")]
 pub fn start_sdl2(fixed_delta: Option<f64>) {
     use graphics::rl_sdl2::build_window;
     use handle_events::sdl2::handle_events;

@@ -1,0 +1,14 @@
+[root]
+name = "configger"
+version = "0.1.0"
+dependencies = [
+ "yaml-rust 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "yaml-rust"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[metadata]
+"checksum yaml-rust 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ebfe12f475ad59be6178ebf004d51e682022496535994f8d23fd7ed31084598c"

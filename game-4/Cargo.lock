@@ -110,6 +110,9 @@ dependencies = [
 [[package]]
 name = "configger"
 version = "0.1.0"
+dependencies = [
+ "yaml-rust 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "core"
@@ -955,6 +958,11 @@ dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
+[[package]]
+name = "yaml-rust"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
 [metadata]
 "checksum aho-corasick 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ca972c2ea5f742bfce5687b9aef75506a764f61d37f8f649047846a9686ddb66"
 "checksum android_glue 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7e2b80445d331077679dfc6f3014f3e9ab7083e588423d35041d3fc017198189"
@@ -1062,3 +1070,4 @@ dependencies = [
 "checksum winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
 "checksum x11-dl 2.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3e3008575772faacd39c0a0daba6c6a4a9c8f11a7572d5b0a7c9e5e1fa306ea4"
 "checksum xml-rs 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)" = "65e74b96bd3179209dc70a980da6df843dff09e46eee103a0376c0949257e3ef"
+"checksum yaml-rust 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ebfe12f475ad59be6178ebf004d51e682022496535994f8d23fd7ed31084598c"
