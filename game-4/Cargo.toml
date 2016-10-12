@@ -14,4 +14,4 @@ configger = { path="../configger" }
 g_glutin = ["core/g_glutin"]
 g_sdl2 = ["core/g_sdl2"]
 
-default = ["g_glutin", "g_sdl2"]
+default = ["g_glutin"]
