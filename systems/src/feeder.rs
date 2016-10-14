@@ -9,16 +9,13 @@ use utils::{Coord, Delta, Player};
 // const DISTANCE_WEIGHT: f32 = 5.0;
 // const TIME_WEIGHT: f64 = 1.0;
 
-pub trait OnePlayerLoseFn<S>: Fn(Player,
-   S,
-   S) -> Vec<(Player, S)> {
-}
-pub trait BothPlayerLoseFn<S>: Fn(S,
-   S) -> Vec<(Player, S)> {
-}
-
-pub struct FeederSystem<T: Send + OnePlayerLoseFn<f64>, F: Send + BothPlayerLoseFn<f64>> {
-    ai_front_channel: FrontChannel<FeederToAi<f64, f64>, FeederFromAi>,
+pub struct FeederSystem<T: Send + Fn(Player,
+                           f64,
+                           f64) -> Vec<(Player, i64)>,
+                        F: Send + Fn(f64,
+                           f64) -> Vec<(Player, i64)>>
+{
+    ai_front_channel: FrontChannel<FeederToAi<i64, f64>, FeederFromAi>,
     score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
     one_player_lose: T,
     both_player_lose: F,
@@ -26,10 +23,13 @@ pub struct FeederSystem<T: Send + OnePlayerLoseFn<f64>, F: Send + BothPlayerLose
 }
 
 impl<T, F> FeederSystem<T, F>
-    where T: Send + OnePlayerLoseFn<f64>,
-          F: Send + BothPlayerLoseFn<f64>
+    where T: Send + Fn(Player,
+                f64,
+                f64) -> Vec<(Player, i64)>,
+          F: Send + Fn(f64,
+                f64) -> Vec<(Player, i64)>
 {
-    pub fn new(ai_front_channel: FrontChannel<FeederToAi<f64, f64>, FeederFromAi>,
+    pub fn new(ai_front_channel: FrontChannel<FeederToAi<i64, f64>, FeederFromAi>,
                score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
                one_player_lose: T,
                both_player_lose: F)
@@ -45,8 +45,11 @@ impl<T, F> FeederSystem<T, F>
 }
 
 impl<T, F> System<Delta> for FeederSystem<T, F>
-    where T: Send + OnePlayerLoseFn<f64>,
-          F: Send + BothPlayerLoseFn<f64>
+    where T: Send + Fn(Player,
+                f64,
+                f64) -> Vec<(Player, i64)>,
+          F: Send + Fn(f64,
+                f64) -> Vec<(Player, i64)>
 {
     fn run(&mut self,
            arg: RunArg,
@@ -96,8 +99,8 @@ impl<T, F> System<Delta> for FeederSystem<T, F>
                     .collect::<Vec<Vector3<Coord>>>();
                 if other.len() == 1 {
                     match me.0 {
-                        Player::One => Some((me.0, -1.0)),//-me.1.distance(center) as i64)),
-                        Player::Two => Some((me.0, 1.0)),//-me.1.distance(center) as i64)),
+                        Player::One => Some((me.0, 1)),//-me.1.distance(center) as i64)),
+                        Player::Two => Some((me.0, 1)),//-me.1.distance(center) as i64)),
                     }
                 } else {
                     None

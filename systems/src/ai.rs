@@ -336,17 +336,17 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
     }
 }
 
-pub struct AiSystem<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable, F: Fn() -> W> {
+pub struct AiSystem<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable> {
     main_back_channel: BackChannel<MainToAi, MainFromAi>,
     feeder_back_channel: BackChannel<FeederToAi<S, W>, FeederFromAi>,
     control_front_channel: FrontChannel<AiToControl<W>, AiFromControl>,
     brain_type: HashMap<Brain, BrainClump<S, W>>,
     brain_mapper: HashMap<Player, Brain>,
-    mutation_mult_picker: F,
-    mutation_add_picker: F,
+    mutation_mult_picker: Box<Fn() -> W>,
+    mutation_add_picker: Box<Fn() -> W>,
 }
 
-impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable, F: Fn() -> W> AiSystem<S, W, F> {
+impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable> AiSystem<S, W> {
     pub fn new(main_back_channel: BackChannel<MainToAi, MainFromAi>,
                feeder_back_channel: BackChannel<FeederToAi<S, W>, FeederFromAi>,
                control_front_channel: FrontChannel<AiToControl<W>, AiFromControl>,
@@ -357,9 +357,9 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
                max_weight: W,
                min_bias: W,
                max_bias: W,
-               mutation_mult_picker: F,
-               mutation_add_picker: F)
-               -> AiSystem<S, W, F> {
+               mutation_mult_picker: Fn() -> W,
+               mutation_add_picker: Fn() -> W)
+               -> AiSystem<S, W> {
         let input_size = S::from_u8(4).unwrap_or_else(|| panic!("S From u8 4 was none"));
 
         let mut brain_type: HashMap<Brain, BrainClump<S, W>> = HashMap::new();
@@ -476,7 +476,7 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
     }
 }
 
-impl<'a, 'b, S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive + FromPrimitive + Num, W: Send + Float + SampleRange + FromPrimitive + Decodable + Encodable, F: Send + Fn() -> W> System<Delta> for AiSystem<S, W, F> {
+impl<'a, 'b, S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive + FromPrimitive + Num, W: Send + Float + SampleRange + FromPrimitive + Decodable + Encodable> System<Delta> for AiSystem<S, W> {
     fn run(&mut self,
            arg: RunArg,
            _delta_time: Delta) {

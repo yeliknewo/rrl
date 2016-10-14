@@ -10,6 +10,7 @@ use core::crates::components::{Camera, CompMoving, CompPlayer, RenderData, Trans
 use core::crates::event::two_way_channel;
 use core::crates::find_folder::Search;
 use core::crates::graphics::load_texture;
+use core::crates::rand::{Rng, thread_rng};
 use core::crates::systems::{AiSystem, ControlSystem, FeederSystem, MovingSystem, PlayerSystem, ScoreSystem};
 use core::crates::utils::{Opter, OrthographicHelper, Player};
 
@@ -143,7 +144,14 @@ fn main() {
         let (feeder_to_ai_front_channel, feeder_to_ai_back_channel) = two_way_channel();
 
         planner.add_system(FeederSystem::new(feeder_to_ai_front_channel,
-                                             score_to_feeder_back_channel),
+                                             score_to_feeder_back_channel,
+                                             (|player, score_1, score_2| {
+                                                 match player {
+                                                     Player::One => vec![(Player::One, 0), (Player::Two, 0)],
+                                                     Player::Two => vec![(Player::One, 0), (Player::Two, 0)],
+                                                 }
+                                             }),
+                                             (|score_1, score_2| vec![(Player::One, 0), (Player::Two, 0)])),
                            "feeder",
                            50);
 
@@ -152,7 +160,33 @@ fn main() {
         planner.add_system(AiSystem::new(back_event_clump.take_ai()
                                              .unwrap_or_else(|| panic!("Ai was none")),
                                          feeder_to_ai_back_channel,
-                                         ai_to_control_front_channel),
+                                         ai_to_control_front_channel,
+                                         vec![4, 9, 15, 9, 5, 2],
+                                         vec![4, 8, 15, 9, 5, 2],
+                                         16,
+                                         -1.0,
+                                         1.0,
+                                         -1.0,
+                                         1.0,
+                                         Box::new(|| {
+            if thread_rng().gen_range(0,
+                                      20) == 0 {
+                thread_rng().choose(vec![-1.0, 1.0].as_slice()).unwrap_or_else(|| panic!("Choose was none")) *
+                thread_rng().gen_range(0.5,
+                                       2.0)
+            } else {
+                1.0
+            }
+        }),
+                                         Box::new(|| {
+            if thread_rng().gen_range(0,
+                                      20) == 0 {
+                thread_rng().gen_range(-1.0,
+                                       1.0)
+            } else {
+                0.0
+            }
+        })),
                            "ai",
                            40);
 

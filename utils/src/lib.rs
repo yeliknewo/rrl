@@ -21,9 +21,6 @@ pub type Coord = f32;
 pub type CoordI = i64;
 pub type GfxCoord = f32;
 
-// #[derive(Debug, Clone, Hash, Eq, PartialEq)]
-// pub struct WindowId(pub u32);
-
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Ord, PartialOrd, RustcEncodable, RustcDecodable)]
 pub enum Player {
     One,
