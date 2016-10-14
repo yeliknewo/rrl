@@ -1,21 +1,16 @@
 
 use components::{Camera, CompMoving, CompPlayer, RenderData, RenderId, Transform};
-use art::make_square_render;
-use art::game_3::{main, layers};
 use specs::{Planner, World};
 use time::precise_time_ns;
-use cgmath::{Rad, Euler, Point3, Vector3};
-use find_folder::Search;
-use graphics::{OutColor, OutDepth, GlFactory, load_texture};
-use utils::{OrthographicHelper, Delta, FpsCounter, Player};
-use event::{BackChannel, two_way_channel};
+use graphics::{OutColor, OutDepth, GlFactory};
+use utils::{OrthographicHelper, Delta, FpsCounter};
+use event::BackChannel;
 use event_enums::main_x_game::{MainToGame, MainFromGame};
 
-use systems::{AiSystem, FeederSystem, PlayerSystem, RenderSystem, ControlSystem, MovingSystem,
-              ScoreSystem};
-use systems::score::STARTING_VELOCITY;
+use systems::RenderSystem;
 
 use event_clump::BackEventClump;
+use ::{Setup, SetupNoRender};
 
 pub struct Game {
     planner: Planner<Delta>,
@@ -26,7 +21,10 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new_no_render(mut back_event_clump: BackEventClump, fixed_delta: Option<f64>) -> Game {
+    pub fn new_no_render(setup: SetupNoRender,
+                         mut back_event_clump: BackEventClump,
+                         fixed_delta: Option<f64>)
+                         -> Game {
         let mut planner = {
             let mut world = World::new();
 
@@ -40,59 +38,61 @@ impl Game {
             Planner::<Delta>::new(world, 8)
         };
 
-        planner.mut_world()
-            .create_now()
-            .with(CompMoving::new(STARTING_VELOCITY))
-            .with(CompPlayer::new(Player::One))
-            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0),
-                                 Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)),
-                                 Vector3::new(1.0, 1.0, 1.0)))
-            .build();
+        setup(&mut planner, &mut back_event_clump);
 
-        planner.mut_world()
-            .create_now()
-            .with(CompMoving::new(STARTING_VELOCITY))
-            .with(CompPlayer::new(Player::Two))
-            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0),
-                                 Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)),
-                                 Vector3::new(1.0, 1.0, 1.0)))
-            .build();
-
-
-        let (score_to_feeder_front_channel, score_to_feeder_back_channel) = two_way_channel();
-
-        planner.add_system(ScoreSystem::new(score_to_feeder_front_channel), "score", 60);
-
-        let (feeder_to_ai_front_channel, feeder_to_ai_back_channel) = two_way_channel();
-
-        planner.add_system(FeederSystem::new(feeder_to_ai_front_channel,
-                                             score_to_feeder_back_channel),
-                           "feeder",
-                           50);
-
-        let (ai_to_control_front_channel, ai_to_control_back_channel) = two_way_channel();
-
-        planner.add_system(AiSystem::new(back_event_clump.take_ai()
-                                             .unwrap_or_else(|| panic!("Ai was none")),
-                                         feeder_to_ai_back_channel,
-                                         ai_to_control_front_channel),
-                           "ai",
-                           40);
-
-        let (control_to_player_front_channel, control_to_player_back_channel) = two_way_channel();
-
-        planner.add_system(ControlSystem::new(back_event_clump.take_control()
-                                                  .unwrap_or_else(|| panic!("Control was none")),
-                                              ai_to_control_back_channel,
-                                              control_to_player_front_channel),
-                           "control",
-                           30);
-
-        planner.add_system(PlayerSystem::new(control_to_player_back_channel),
-                           "player",
-                           20);
-
-        planner.add_system(MovingSystem::new(), "moving", 15);
+        // planner.mut_world()
+        //     .create_now()
+        //     .with(CompMoving::new(STARTING_VELOCITY))
+        //     .with(CompPlayer::new(Player::One))
+        //     .with(Transform::new(Vector3::new(0.0, 0.0, 0.0),
+        //                          Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)),
+        //                          Vector3::new(1.0, 1.0, 1.0)))
+        //     .build();
+        //
+        // planner.mut_world()
+        //     .create_now()
+        //     .with(CompMoving::new(STARTING_VELOCITY))
+        //     .with(CompPlayer::new(Player::Two))
+        //     .with(Transform::new(Vector3::new(0.0, 0.0, 0.0),
+        //                          Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)),
+        //                          Vector3::new(1.0, 1.0, 1.0)))
+        //     .build();
+        //
+        //
+        // let (score_to_feeder_front_channel, score_to_feeder_back_channel) = two_way_channel();
+        //
+        // planner.add_system(ScoreSystem::new(score_to_feeder_front_channel), "score", 60);
+        //
+        // let (feeder_to_ai_front_channel, feeder_to_ai_back_channel) = two_way_channel();
+        //
+        // planner.add_system(FeederSystem::new(feeder_to_ai_front_channel,
+        //                                      score_to_feeder_back_channel),
+        //                    "feeder",
+        //                    50);
+        //
+        // let (ai_to_control_front_channel, ai_to_control_back_channel) = two_way_channel();
+        //
+        // planner.add_system(AiSystem::new(back_event_clump.take_ai()
+        //                                      .unwrap_or_else(|| panic!("Ai was none")),
+        //                                  feeder_to_ai_back_channel,
+        //                                  ai_to_control_front_channel),
+        //                    "ai",
+        //                    40);
+        //
+        // let (control_to_player_front_channel, control_to_player_back_channel) = two_way_channel();
+        //
+        // planner.add_system(ControlSystem::new(back_event_clump.take_control()
+        //                                           .unwrap_or_else(|| panic!("Control was none")),
+        //                                       ai_to_control_back_channel,
+        //                                       control_to_player_front_channel),
+        //                    "control",
+        //                    30);
+        //
+        // planner.add_system(PlayerSystem::new(control_to_player_back_channel),
+        //                    "player",
+        //                    20);
+        //
+        // planner.add_system(MovingSystem::new(), "moving", 15);
 
         Game {
             planner: planner,
@@ -104,9 +104,11 @@ impl Game {
         }
     }
 
-    pub fn new(factory: &mut GlFactory,
+    #[allow(dead_code)]
+    pub fn new(setup: Setup,
+               factory: &mut GlFactory,
                mut back_event_clump: BackEventClump,
-               ortho_helper: OrthographicHelper,
+               ortho: OrthographicHelper,
                out_color: OutColor,
                out_depth: OutDepth,
                fixed_delta: Option<f64>)
@@ -129,89 +131,95 @@ impl Game {
                                              out_color,
                                              out_depth);
 
-        planner.mut_world()
-            .create_now()
-            .with(Camera::new(Point3::new(0.0, 0.0, 2.0),
-                              Point3::new(0.0, 0.0, 0.0),
-                              Vector3::new(0.0, 1.0, 0.0),
-                              ortho_helper,
-                              true))
-            .build();
+        setup(&mut planner,
+              &mut back_event_clump,
+              &mut renderer,
+              factory,
+              ortho);
 
-        let packet = make_square_render();
-
-        let assets =
-            Search::ParentsThenKids(5, 3).for_folder("assets").unwrap_or_else(|err| panic!(err));
-
-        let main_render = {
-            let texture = load_texture(factory, assets.join(main::NAME));
-            renderer.add_render(factory, &packet, texture)
-        };
-
-        planner.mut_world()
-            .create_now()
-            .with(CompMoving::new(STARTING_VELOCITY))
-            .with(CompPlayer::new(Player::One))
-            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0),
-                                 Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)),
-                                 Vector3::new(1.0, 1.0, 1.0)))
-            .with(main_render.clone())
-            .with(RenderData::new(layers::PLAYER,
-                                  *main::DEFAULT_TINT,
-                                  main::PLAYER_1_STAND,
-                                  main::SIZE))
-            .build();
-
-        planner.mut_world()
-            .create_now()
-            .with(CompMoving::new(STARTING_VELOCITY))
-            .with(CompPlayer::new(Player::Two))
-            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0),
-                                 Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)),
-                                 Vector3::new(1.0, 1.0, 1.0)))
-            .with(main_render.clone())
-            .with(RenderData::new(layers::PLAYER,
-                                  [1.0, 0.0, 0.0, 1.0],
-                                  main::PLAYER_1_STAND,
-                                  main::SIZE))
-            .build();
-
-
-        let (score_to_feeder_front_channel, score_to_feeder_back_channel) = two_way_channel();
-
-        planner.add_system(ScoreSystem::new(score_to_feeder_front_channel), "score", 60);
-
-        let (feeder_to_ai_front_channel, feeder_to_ai_back_channel) = two_way_channel();
-
-        planner.add_system(FeederSystem::new(feeder_to_ai_front_channel,
-                                             score_to_feeder_back_channel),
-                           "feeder",
-                           50);
-
-        let (ai_to_control_front_channel, ai_to_control_back_channel) = two_way_channel();
-
-        planner.add_system(AiSystem::new(back_event_clump.take_ai()
-                                             .unwrap_or_else(|| panic!("Ai was none")),
-                                         feeder_to_ai_back_channel,
-                                         ai_to_control_front_channel),
-                           "ai",
-                           40);
-
-        let (control_to_player_front_channel, control_to_player_back_channel) = two_way_channel();
-
-        planner.add_system(ControlSystem::new(back_event_clump.take_control()
-                                                  .unwrap_or_else(|| panic!("Control was none")),
-                                              ai_to_control_back_channel,
-                                              control_to_player_front_channel),
-                           "control",
-                           30);
-
-        planner.add_system(PlayerSystem::new(control_to_player_back_channel),
-                           "player",
-                           20);
-
-        planner.add_system(MovingSystem::new(), "moving", 15);
-
+        // planner.mut_world()
+        //     .create_now()
+        //     .with(Camera::new(Point3::new(0.0, 0.0, 2.0),
+        //                       Point3::new(0.0, 0.0, 0.0),
+        //                       Vector3::new(0.0, 1.0, 0.0),
+        //                       ortho_helper,
+        //                       true))
+        //     .build();
+        //
+        // let packet = make_square_render();
+        //
+        // let assets =
+        //     Search::ParentsThenKids(5, 3).for_folder("assets").unwrap_or_else(|err| panic!(err));
+        //
+        // let main_render = {
+        //     let texture = load_texture(factory, assets.join(main::NAME));
+        //     renderer.add_render(factory, &packet, texture)
+        // };
+        //
+        // planner.mut_world()
+        //     .create_now()
+        //     .with(CompMoving::new(STARTING_VELOCITY))
+        //     .with(CompPlayer::new(Player::One))
+        //     .with(Transform::new(Vector3::new(0.0, 0.0, 0.0),
+        //                          Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)),
+        //                          Vector3::new(1.0, 1.0, 1.0)))
+        //     .with(main_render.clone())
+        //     .with(RenderData::new(layers::PLAYER,
+        //                           *main::DEFAULT_TINT,
+        //                           main::PLAYER_1_STAND,
+        //                           main::SIZE))
+        //     .build();
+        //
+        // planner.mut_world()
+        //     .create_now()
+        //     .with(CompMoving::new(STARTING_VELOCITY))
+        //     .with(CompPlayer::new(Player::Two))
+        //     .with(Transform::new(Vector3::new(0.0, 0.0, 0.0),
+        //                          Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)),
+        //                          Vector3::new(1.0, 1.0, 1.0)))
+        //     .with(main_render.clone())
+        //     .with(RenderData::new(layers::PLAYER,
+        //                           [1.0, 0.0, 0.0, 1.0],
+        //                           main::PLAYER_1_STAND,
+        //                           main::SIZE))
+        //     .build();
+        //
+        //
+        // let (score_to_feeder_front_channel, score_to_feeder_back_channel) = two_way_channel();
+        //
+        // planner.add_system(ScoreSystem::new(score_to_feeder_front_channel), "score", 60);
+        //
+        // let (feeder_to_ai_front_channel, feeder_to_ai_back_channel) = two_way_channel();
+        //
+        // planner.add_system(FeederSystem::new(feeder_to_ai_front_channel,
+        //                                      score_to_feeder_back_channel),
+        //                    "feeder",
+        //                    50);
+        //
+        // let (ai_to_control_front_channel, ai_to_control_back_channel) = two_way_channel();
+        //
+        // planner.add_system(AiSystem::new(back_event_clump.take_ai()
+        //                                      .unwrap_or_else(|| panic!("Ai was none")),
+        //                                  feeder_to_ai_back_channel,
+        //                                  ai_to_control_front_channel),
+        //                    "ai",
+        //                    40);
+        //
+        // let (control_to_player_front_channel, control_to_player_back_channel) = two_way_channel();
+        //
+        // planner.add_system(ControlSystem::new(back_event_clump.take_control()
+        //                                           .unwrap_or_else(|| panic!("Control was none")),
+        //                                       ai_to_control_back_channel,
+        //                                       control_to_player_front_channel),
+        //                    "control",
+        //                    30);
+        //
+        // planner.add_system(PlayerSystem::new(control_to_player_back_channel),
+        //                    "player",
+        //                    20);
+        //
+        // planner.add_system(MovingSystem::new(), "moving", 15);
+        //
         planner.add_system(renderer, "renderer", 10);
 
         Game {

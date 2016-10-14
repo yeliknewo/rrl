@@ -10,7 +10,7 @@ pub mod crates {
     pub use ::{components, event_enums, event, neural};
     pub use event_enums::crates::{getopts, graphics, gfx, gfx_device_gl, find_folder, image,
                                   utils, cgmath, rustc_serialize};
-    pub use neural::crates::rand;
+    pub use neural::crates::{rand, num};
     pub use components::crates::specs;
     #[cfg(feature = "g_glutin")]
     pub use event_enums::crates::{glutin, gfx_window_glutin};
@@ -18,7 +18,8 @@ pub mod crates {
     pub use event_enums::crates::{sdl2, gfx_window_sdl};
 }
 
-pub use crates::{getopts, rustc_serialize, specs, utils, cgmath, gfx, graphics, find_folder, rand};
+pub use crates::{num, getopts, rustc_serialize, specs, utils, cgmath, gfx, graphics, find_folder,
+                 rand};
 
 pub mod ai;
 pub mod control;

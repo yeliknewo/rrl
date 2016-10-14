@@ -1,12 +1,12 @@
 use utils::Player;
 
 #[derive(Debug)]
-pub enum AiToControl {
-    Up(f64, Player),
-    Down(f64, Player),
-    Left(f64, Player),
-    Right(f64, Player),
-    Joy(f64, f64, Player),
+pub enum AiToControl<W> {
+    Up(W, Player),
+    Down(W, Player),
+    Left(W, Player),
+    Right(W, Player),
+    Joy(W, W, Player),
 }
 
 #[derive(Debug)]

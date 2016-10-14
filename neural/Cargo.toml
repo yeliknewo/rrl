@@ -6,4 +6,5 @@ authors = ["Kiley Owen <yelikdev@gmail.com>"]
 [dependencies]
 log = "0.3.6"
 rand = "0.3.14"
+num = "0.1.36"
 utils = { path="../utils" }

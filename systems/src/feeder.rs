@@ -7,27 +7,36 @@ use event_enums::feeder_x_ai::{FeederToAi, FeederFromAi};
 use event_enums::score_x_feeder::{ScoreToFeeder, ScoreFromFeeder};
 
 // const DISTANCE_WEIGHT: f32 = 5.0;
-const TIME_WEIGHT: f64 = 1.0;
+// const TIME_WEIGHT: f64 = 1.0;
 
-pub struct FeederSystem {
-    ai_front_channel: FrontChannel<FeederToAi, FeederFromAi>,
-    score_back_channel: BackChannel<ScoreToFeeder, ScoreFromFeeder>,
+pub trait OnePlayerLoseFn<S>: Fn(Player, S, S) -> Vec<(Player, S)> {}
+
+pub struct FeederSystem<T: Send + OnePlayerLoseFn<f64>> {
+    ai_front_channel: FrontChannel<FeederToAi<f64>, FeederFromAi>,
+    score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
+    one_player_lose: T,
     time: f64,
 }
 
-impl FeederSystem {
-    pub fn new(ai_front_channel: FrontChannel<FeederToAi, FeederFromAi>,
-               score_back_channel: BackChannel<ScoreToFeeder, ScoreFromFeeder>)
-               -> FeederSystem {
+impl<T> FeederSystem<T>
+    where T: Send + OnePlayerLoseFn<f64>
+{
+    pub fn new(ai_front_channel: FrontChannel<FeederToAi<f64>, FeederFromAi>,
+               score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
+               one_player_lose: T)
+               -> FeederSystem<T> {
         FeederSystem {
             ai_front_channel: ai_front_channel,
             score_back_channel: score_back_channel,
             time: 0.0,
+            one_player_lose: one_player_lose,
         }
     }
 }
 
-impl System<Delta> for FeederSystem {
+impl<T> System<Delta> for FeederSystem<T>
+    where T: Send + OnePlayerLoseFn<f64>
+{
     fn run(&mut self, arg: RunArg, delta_time: Delta) {
         self.time += delta_time;
 
@@ -36,22 +45,9 @@ impl System<Delta> for FeederSystem {
 
         if let Some(event) = self.score_back_channel.try_recv_to() {
             match event {
-                ScoreToFeeder::Lose(loser, time_add_winner, time_add_loser) => {
+                ScoreToFeeder::Lose(loser, score_1, score_2) => {
                     self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
-                        match loser {
-                            Player::One => {
-                                vec![(Player::One, 0),
-                                     // ((time_add_loser + self.time) * TIME_WEIGHT) as i64),
-                                     (Player::Two, 0)]
-                                // ((time_add_winner + self.time) * TIME_WEIGHT) as i64)]
-                            }
-                            Player::Two => {
-                                vec![(Player::One, 0),
-                                     // ((time_add_winner + self.time) * TIME_WEIGHT) as i64),
-                                     (Player::Two, 0)]
-                                // ((time_add_loser + self.time) * TIME_WEIGHT) as i64)]
-                            }
-                        }
+                        (self.one_player_lose)(loser, score_1, score_2)
                     }));
                     self.time = 0.0;
                 }

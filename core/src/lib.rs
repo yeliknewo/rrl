@@ -5,7 +5,7 @@ pub extern crate art;
 pub extern crate systems;
 
 pub mod crates {
-    pub use ::{art, time};
+    pub use ::{systems, art, time};
     pub use systems::crates::{gfx, graphics, utils, event_enums, getopts, components, event,
                               neural, gfx_device_gl, find_folder, image, cgmath, rustc_serialize,
                               rand, specs};
@@ -27,22 +27,119 @@ mod game;
 mod handle_events;
 
 use std::thread;
+#[allow(unused_imports)]
 use gfx::Device;
-use graphics::GlEncoder;
+#[allow(unused_imports)]
+use graphics::{GlFactory, GlEncoder};
 
 use utils::OrthographicHelper;
 use event_enums::main_x_ai::{MainToAi, MainFromAi};
 use event_enums::main_x_control::MainFromControl;
+#[allow(unused_imports)]
 use event_enums::main_x_render::{MainToRender, MainFromRender};
+#[allow(unused_imports)]
 use event_enums::main_x_game::MainToGame;
 
-use event_clump::make_event_clumps;
+use event_clump::{BackEventClump, make_event_clumps};
 use game::Game;
 
-pub fn start_no_render(fixed_delta: Option<f64>) {
+use specs::Planner;
+use utils::Delta;
+
+use systems::render::RenderSystem;
+
+pub type Setup = Box<Fn(&mut Planner<Delta>,
+                        &mut BackEventClump,
+                        &mut RenderSystem,
+                        &mut GlFactory,
+                        OrthographicHelper)>;
+pub type SetupNoRender = Box<Fn(&mut Planner<Delta>, &mut BackEventClump)>;
+
+#[cfg(all(feature = "g_glutin", feature = "g_sdl2"))]
+pub fn start<O>(delta_time: Option<f64>,
+                g_string: Option<&String>,
+                screen_size: (u32, u32),
+                title: &str,
+                camera: O,
+                setup: Setup,
+                setup_no_render: SetupNoRender)
+    where O: AsRef<OrthographicHelper>
+{
+    match g_string {
+        Some(g_string) => {
+            if g_string.contains("glutin") {
+                start_window(setup, delta_time, screen_size, title, camera);
+            } else if g_string.contains("sdl2") {
+                start_window(setup, delta_time, screen_size, title, camera);
+            } else {
+                start_no_render(setup_no_render, delta_time);
+            }
+        }
+        None => start_no_render(setup_no_render, delta_time),
+    }
+}
+
+#[cfg(all(not(feature = "g_sdl2"),feature = "g_glutin"))]
+pub fn start<O>(delta_time: Option<f64>,
+                g_string: Option<&String>,
+                screen_size: (u32, u32),
+                title: &str,
+                camera: O,
+                setup: Setup,
+                setup_no_render: SetupNoRender)
+    where O: AsRef<OrthographicHelper>
+{
+    match g_string {
+        Some(g_string) => {
+            if g_string.contains("glutin") {
+                start_window(setup, delta_time, screen_size, title, camera);
+            } else {
+                start_no_render(setup_no_render, delta_time);
+            }
+        }
+        None => start_no_render(setup_no_render, delta_time),
+    }
+}
+
+#[cfg(all(feature = "g_sdl2", not(feature = "g_glutin")))]
+pub fn start<O>(delta_time: Option<f64>,
+                g_string: Option<&String>,
+                screen_size: (u32, u32),
+                title: &str,
+                camera: O,
+                setup: Setup,
+                setup_no_render: SetupNoRender)
+    where O: AsRef<OrthographicHelper>
+{
+    match g_string {
+        Some(g_string) => {
+            if g_string.contains("sdl2") {
+                start_window(setup, delta_time, screen_size, title, camera);
+            } else {
+                start_no_render(setup_no_render, delta_time);
+            }
+        }
+        None => start_no_render(setup_no_render, delta_time),
+    }
+}
+
+#[cfg(all(not(feature = "g_sdl2"), not(feature = "g_glutin")))]
+pub fn start<O>(delta_time: Option<f64>,
+                _g: Option<&String>,
+                _size: (u32, u32),
+                _title: &str,
+                _ortho: O,
+                _setup: Setup,
+                setup_no_render: SetupNoRender)
+    where O: AsRef<OrthographicHelper>
+{
+    start_no_render(setup_no_render, delta_time);
+}
+
+fn start_no_render(setup: SetupNoRender, fixed_delta: Option<f64>) {
     let (mut front_event_clump, back_event_clump) = make_event_clumps();
 
-    let game = Game::new_no_render(back_event_clump, fixed_delta);
+    let game = Game::new_no_render(setup, back_event_clump, fixed_delta);
 
     thread::spawn(|| {
         let mut game = game;
@@ -78,150 +175,27 @@ pub fn start_no_render(fixed_delta: Option<f64>) {
     }
 }
 
-#[cfg(feature = "g_glutin")]
-pub fn start_glutin(fixed_delta: Option<f64>) {
+#[cfg(any(feature = "g_glutin", feature = "g_sdl2"))]
+fn start_window<O>(setup: Setup,
+                   fixed_delta: Option<f64>,
+                   screen_size: (u32, u32),
+                   title: &str,
+                   ortho: O)
+    where O: AsRef<OrthographicHelper>
+{
+    #[cfg(feature = "g_glutin")]
     use graphics::rl_glutin::build_window;
+    #[cfg(feature = "g_glutin")]
     use handle_events::glutin::handle_events;
 
-    debug!("Starting Core Start");
-
-    let (mut front_event_clump, back_event_clump) = make_event_clumps();
-
-    let (width, height): (u32, u32) = (640, 640);
-
-    let title = "rl-game-4";
-
-    let left = -10.0;
-    let right = 10.0;
-
-    let near = 0.0;
-    let far = 10.0;
-
-    let aspect_ratio = width as f32 / height as f32;
-
-    let ortho_helper = OrthographicHelper::new(aspect_ratio, left, right, near, far);
-
-    // warn!("Making Window");
-    let mut gfx_window = build_window((title, width, height));
-
-    // warn!("Making Encoder");
-    let encoder: GlEncoder = gfx_window.get_mut_factory().create_command_buffer().into();
-
-    {
-        let mut render_event_core = front_event_clump.get_mut_render()
-            .unwrap_or_else(|| panic!("Render was none"));
-
-        // warn!("Sending Empty Encoder");
-        render_event_core.send_to(MainToRender::Encoder(encoder.clone_empty()));
-        // warn!("Sending Encoder");
-        render_event_core.send_to(MainToRender::Encoder(encoder));
-    }
-
-    let out_color = gfx_window.get_out_color().clone();
-    let out_depth = gfx_window.get_out_depth().clone();
-
-    // warn!("Making Game");
-    // let game = Game::new_no_render(back_event_clump);
-
-    let game = Game::new(gfx_window.get_mut_factory(),
-                         back_event_clump,
-                         ortho_helper,
-                         out_color,
-                         out_depth,
-                         fixed_delta);
-
-    // warn!("Making Game Thread");
-    let game_handle = thread::spawn(|| {
-        let mut game = game;
-        while game.frame() {
-        }
-    });
-
-    'main: loop {
-        // warn!("Main Loop");
-        if let Some(event) = front_event_clump.get_mut_render()
-            .unwrap_or_else(|| panic!("Render was none"))
-            .try_recv_from() {
-            match event {
-                MainFromRender::Encoder(mut encoder) => {
-                    if handle_events(&mut gfx_window, &mut front_event_clump) {
-                        front_event_clump.get_mut_render()
-                            .unwrap_or_else(|| panic!("Render was none"))
-                            .send_to(MainToRender::Encoder(encoder));
-                        break 'main;
-                    }
-
-                    encoder.flush(gfx_window.get_mut_device());
-                    front_event_clump.get_mut_render()
-                        .unwrap_or_else(|| panic!("Render was none"))
-                        .send_to(MainToRender::Encoder(encoder));
-                    gfx_window.swap_buffers();
-                    gfx_window.get_mut_device().cleanup();
-                }
-            }
-        }
-
-        if let Some(event) = front_event_clump.get_mut_control()
-            .unwrap_or_else(|| panic!("Control was none"))
-            .try_recv_from() {
-            match event {
-                MainFromControl::Save => {
-                    front_event_clump.get_mut_ai()
-                        .unwrap_or_else(|| panic!("Ai was none"))
-                        .send_to(MainToAi::Save);
-                    match front_event_clump.get_mut_ai()
-                        .unwrap_or_else(|| panic!("Ai was none"))
-                        .recv_from() {
-                        MainFromAi::Saved => warn!("Autosaved"),
-                    };
-                }
-            }
-        }
-
-        if let Some(event) = front_event_clump.get_mut_game()
-            .unwrap_or_else(|| panic!("Game was none"))
-            .try_recv_from() {
-            match event {
-
-            }
-        }
-    }
-
-    front_event_clump.get_mut_ai().unwrap_or_else(|| panic!("Ai was none")).send_to(MainToAi::Save);
-    match front_event_clump.get_mut_ai().unwrap_or_else(|| panic!("Ai was none")).recv_from() {
-        MainFromAi::Saved => {
-            warn!("Tried to save, might have worked");
-        }
-    }
-    front_event_clump.get_mut_game()
-        .unwrap_or_else(|| panic!("Game was none"))
-        .send_to(MainToGame::Exit);
-
-    game_handle.join().unwrap_or_else(|err| panic!("Error: {:?}", err));
-}
-
-#[cfg(feature = "g_sdl2")]
-pub fn start_sdl2(fixed_delta: Option<f64>) {
+    #[cfg(all(feature = "g_sdl2", not(feature = "g_glutin")))]
     use graphics::rl_sdl2::build_window;
+    #[cfg(all(feature = "g_sdl2", not(feature = "g_glutin")))]
     use handle_events::sdl2::handle_events;
 
-    debug!("Starting Core Start");
-
     let (mut front_event_clump, back_event_clump) = make_event_clumps();
 
-    let (width, height): (u32, u32) = (640, 640);
-
-    let title = "rl-game-4";
-
-    let left = -10.0;
-    let right = 10.0;
-
-    let near = 0.0;
-    let far = 10.0;
-
-    let aspect_ratio = width as f32 / height as f32;
-
-    let ortho_helper = OrthographicHelper::new(aspect_ratio, left, right, near, far);
+    let (width, height): (u32, u32) = screen_size;
 
     // warn!("Making Window");
     let mut gfx_window = build_window((title, width, height));
@@ -245,9 +219,10 @@ pub fn start_sdl2(fixed_delta: Option<f64>) {
     // warn!("Making Game");
     // let game = Game::new_no_render(back_event_clump);
 
-    let game = Game::new(gfx_window.get_mut_factory(),
+    let game = Game::new(setup,
+                         gfx_window.get_mut_factory(),
                          back_event_clump,
-                         ortho_helper,
+                         ortho.as_ref().clone(),
                          out_color,
                          out_depth,
                          fixed_delta);

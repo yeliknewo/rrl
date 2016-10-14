@@ -1,10 +1,10 @@
 use utils::Player;
 
 #[derive(Debug)]
-pub enum FeederToAi {
-    WorldState(Player, Vec<f64>),
-    Reward(Vec<(Player, i64)>),
-    RewardAndEnd(Vec<(Player, i64)>),
+pub enum FeederToAi<S> {
+    WorldState(Player, Vec<S>),
+    Reward(Vec<(Player, S)>),
+    RewardAndEnd(Vec<(Player, S)>),
 }
 
 #[derive(Debug)]

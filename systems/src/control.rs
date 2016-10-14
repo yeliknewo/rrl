@@ -9,7 +9,7 @@ use event_enums::control_x_player::{ControlToPlayer, ControlFromPlayer};
 #[derive(Debug)]
 pub struct ControlSystem {
     main_back_channel: BackChannel<MainToControl, MainFromControl>,
-    ai_back_channel: BackChannel<AiToControl, AiFromControl>,
+    ai_back_channel: BackChannel<AiToControl<f64>, AiFromControl>,
     player_front_channel: Option<FrontChannel<ControlToPlayer, ControlFromPlayer>>,
     repeat_map: HashMap<RepeatEvent, ControlToPlayer>,
     time: f64,
@@ -24,7 +24,7 @@ enum RepeatEvent {
 
 impl ControlSystem {
     pub fn new(main_back_channel: BackChannel<MainToControl, MainFromControl>,
-               ai_back_channel: BackChannel<AiToControl, AiFromControl>,
+               ai_back_channel: BackChannel<AiToControl<f64>, AiFromControl>,
                player_front_channel: FrontChannel<ControlToPlayer, ControlFromPlayer>)
                -> ControlSystem {
         ControlSystem {
@@ -85,7 +85,7 @@ impl ControlSystem {
         self.send_repeat(ControlToPlayer::Joy(x, y, player));
     }
 
-    fn process_ai_event(&mut self, event: AiToControl) {
+    fn process_ai_event(&mut self, event: AiToControl<f64>) {
         match event {
             AiToControl::Up(amount, player) => self.send_once(ControlToPlayer::Up(amount, player)),
             AiToControl::Down(amount, player) => {

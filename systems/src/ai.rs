@@ -8,11 +8,14 @@ use neural::evolution::EvolutionaryTrainer;
 use find_folder::Search;
 use rustc_serialize::json;
 use specs::{System, RunArg};
-use utils::{Delta, Player, Opter};
+use utils::{Delta, Player, Opter, Codable};
 use event::{FrontChannel, BackChannel};
 use event_enums::ai_x_control::{AiToControl, AiFromControl};
 use event_enums::feeder_x_ai::{FeederToAi, FeederFromAi};
 use event_enums::main_x_ai::{MainToAi, MainFromAi};
+use num::{Num, ToPrimitive, FromPrimitive, Float};
+use rand::distributions::range::SampleRange;
+use std::fmt::Debug;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Brain {
@@ -38,23 +41,24 @@ impl<'a> Brain {
 }
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
-struct BrainClump {
-    trainer: EvolutionaryTrainer,
+struct BrainClump<S: Codable + Ord + Clone, W: Float + SampleRange + FromPrimitive> {
+    trainer: EvolutionaryTrainer<S, W>,
     player_mapper: HashMap<Player, usize>,
     used_indices: Vec<usize>,
-    rewards: Vec<(usize, i64)>,
+    rewards: Vec<(usize, S)>,
     players: Vec<Player>,
 }
 
-impl BrainClump {
+impl<S: Debug + Ord + Clone + Codable + ToPrimitive + Num,
+     W: Float + SampleRange + FromPrimitive + Codable> BrainClump<S, W> {
     fn new(network_count: usize,
-           input_size: u16,
-           network_size: Vec<u16>,
-           min_weight: f64,
-           max_weight: f64,
-           min_bias: f64,
-           max_bias: f64)
-           -> BrainClump {
+           input_size: S,
+           network_size: Vec<S>,
+           min_weight: W,
+           max_weight: W,
+           min_bias: W,
+           max_bias: W)
+           -> BrainClump<S, W> {
         let mut networks = HashMap::new();
 
         for index in 0..network_count {
@@ -76,8 +80,8 @@ impl BrainClump {
         }
     }
 
-    fn load(brain: Brain) -> Option<BrainClump> {
-        let load_path = match BrainClump::get_load_path(Brain::brain_to_name(brain)) {
+    fn load(brain: Brain) -> Option<BrainClump<S, W>> {
+        let load_path = match BrainClump::<S, W>::get_load_path(Brain::brain_to_name(brain)) {
             Some(path) => path,
             None => return None,
         };
@@ -143,7 +147,7 @@ impl BrainClump {
     }
 
     fn save(&self, brain: Brain) {
-        let save_path = match BrainClump::get_save_path(Brain::brain_to_name(brain)) {
+        let save_path = match BrainClump::<S, W>::get_save_path(Brain::brain_to_name(brain)) {
             Some(path) => path,
             None => return,
         };
@@ -204,7 +208,7 @@ impl BrainClump {
         self.used_indices.sort();
     }
 
-    fn think(&mut self, player: Player, inputs: &mut Vec<f64>) -> AiToControl {
+    fn think(&mut self, player: Player, inputs: &mut Vec<W>) -> AiToControl<W> {
         // let dot1 = dot(vec[0].1, vec[1].1);
         // let dot2 = dot(vec[1].1, vec[0].1);
         //
@@ -222,12 +226,12 @@ impl BrainClump {
 
         // NeuralNetwork::sigmoid_inputs(inputs);
 
-        let result: Vec<f64> = network.fire(inputs);
+        let result: Vec<W> = network.fire(inputs);
 
         // warn!("Player: {:?}, Results: {:?}", player, result);
 
-        let x: f64 = *result.get(0).unwrap_or_else(|| panic!("Panic"));
-        let y: f64 = *result.get(1).unwrap_or_else(|| panic!("Panic"));
+        let x: W = *result.get(0).unwrap_or_else(|| panic!("Panic"));
+        let y: W = *result.get(1).unwrap_or_else(|| panic!("Panic"));
 
         let atan = y.atan2(x);
 
@@ -253,14 +257,14 @@ impl BrainClump {
         // output
     }
 
-    fn prep_reward(&mut self, reward: (Player, i64)) {
+    fn prep_reward(&mut self, reward: (Player, S)) {
         let index = *self.player_mapper
             .get(&reward.0)
             .unwrap_or_else(|| panic!("Player Mapper get Value.0 was None"));
         self.rewards.push((index, reward.1));
     }
 
-    fn reward(&mut self, reward: (Player, i64)) {
+    fn reward(&mut self, reward: (Player, S)) {
         // warn!("Finished Game");
         self.prep_reward(reward);
 
@@ -275,14 +279,14 @@ impl BrainClump {
 
     fn train(&mut self) {
         debug!("Training Next Generation");
-        let mut rewards: HashMap<usize, i64> = HashMap::new();
+        let mut rewards: HashMap<usize, S> = HashMap::new();
 
         for reward in self.rewards.drain(..) {
             let sum = {
                 if rewards.contains_key(&reward.0) {
                     *rewards.get(&reward.0).unwrap()
                 } else {
-                    rewards.insert(reward.0, 0);
+                    rewards.insert(reward.0, S::zero());
                     *rewards.get(&reward.0).unwrap()
                 }
             };
@@ -298,19 +302,19 @@ impl BrainClump {
     }
 }
 
-pub struct AiSystem {
+pub struct AiSystem<S: Ord + Clone + Codable, W: Float + FromPrimitive + SampleRange> {
     main_back_channel: BackChannel<MainToAi, MainFromAi>,
-    feeder_back_channel: BackChannel<FeederToAi, FeederFromAi>,
-    control_front_channel: FrontChannel<AiToControl, AiFromControl>,
-    brain_type: HashMap<Brain, BrainClump>,
+    feeder_back_channel: BackChannel<FeederToAi<S>, FeederFromAi>,
+    control_front_channel: FrontChannel<AiToControl<W>, AiFromControl>,
+    brain_type: HashMap<Brain, BrainClump<S, W>>,
     brain_mapper: HashMap<Player, Brain>,
 }
 
-impl<'a, 'b> AiSystem {
+impl<'a, 'b, S: Ord + Clone + Codable, W: Float + FromPrimitive + SampleRange> AiSystem<S, W> {
     pub fn new(main_back_channel: BackChannel<MainToAi, MainFromAi>,
-               feeder_back_channel: BackChannel<FeederToAi, FeederFromAi>,
-               control_front_channel: FrontChannel<AiToControl, AiFromControl>)
-               -> AiSystem {
+               feeder_back_channel: BackChannel<FeederToAi<S>, FeederFromAi>,
+               control_front_channel: FrontChannel<AiToControl<W>, AiFromControl>)
+               -> AiSystem<S, W> {
         let network_count = 32;
 
         let input_size = 4;
@@ -382,7 +386,7 @@ impl<'a, 'b> AiSystem {
             .add_player(player);
     }
 
-    fn process_event(&mut self, event: FeederToAi) {
+    fn process_event(&mut self, event: FeederToAi<S>) {
         match event {
             FeederToAi::WorldState(player, mut vec) => {
                 let brain = match self.brain_mapper.get(&player) {
@@ -429,7 +433,7 @@ impl<'a, 'b> AiSystem {
     }
 }
 
-impl<'a, 'b> System<Delta> for AiSystem {
+impl<'a, 'b, S: Send + Ord + Clone + Codable, W: Send + Float + FromPrimitive + SampleRange> System<Delta> for AiSystem<S, W> {
     fn run(&mut self, arg: RunArg, _delta_time: Delta) {
 
         while let Some(event) = self.feeder_back_channel.try_recv_to() {

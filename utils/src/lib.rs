@@ -21,6 +21,12 @@ pub type Coord = f32;
 pub type CoordI = i64;
 pub type GfxCoord = f32;
 
+use rustc_serialize::{Encodable, Decodable};
+
+pub trait Codable: Encodable + Decodable {
+
+}
+
 // #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 // pub struct WindowId(pub u32);
 

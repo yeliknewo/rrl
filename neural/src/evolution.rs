@@ -1,23 +1,28 @@
 use std::collections::HashMap;
 use std::vec::Drain as VecDrain;
 use rand::{Rng, thread_rng};
+use rand::distributions::range::SampleRange;
+use num::{Float, FromPrimitive};
 use network::NeuralNetwork;
 
 #[derive(Debug, Clone, RustcEncodable, RustcDecodable)]
-pub struct EvolutionaryTrainer {
-    next_generation: HashMap<usize, NeuralNetwork>,
-    generation: Vec<Species>,
+pub struct EvolutionaryTrainer<S: Ord + Clone, W: Float + SampleRange + FromPrimitive> {
+    next_generation: HashMap<usize, NeuralNetwork<W>>,
+    generation: Vec<Species<S, W>>,
 }
 
-impl EvolutionaryTrainer {
-    pub fn new(first_generation: HashMap<usize, NeuralNetwork>) -> EvolutionaryTrainer {
+impl<S: Ord + Clone, W: SampleRange + Float + FromPrimitive> EvolutionaryTrainer<S, W> {
+    pub fn new(first_generation: HashMap<usize, NeuralNetwork<W>>) -> EvolutionaryTrainer<S, W> {
         EvolutionaryTrainer {
             next_generation: first_generation,
             generation: vec![],
         }
     }
 
-    pub fn train(&mut self, mut rewards: HashMap<usize, i64>) {
+    pub fn train<F: Fn() -> W>(&mut self,
+                               mut rewards: HashMap<usize, S>,
+                               mutation_mult_picker: &F,
+                               mutation_add_picker: &F) {
         assert_eq!(self.next_generation.len(), rewards.len());
 
         let drop_count = 4;
@@ -43,13 +48,13 @@ impl EvolutionaryTrainer {
         }
 
         for _ in 0..(2 + drop_count) {
-            self.add_to_next_gen(first.cross(&second));
+            self.add_to_next_gen(first.cross(&second, mutation_mult_picker, mutation_add_picker));
         }
 
         let mut delay = vec![];
 
         for species in self.generation.drain(..) {
-            delay.push(first.cross(&species));
+            delay.push(first.cross(&species, mutation_mult_picker, mutation_add_picker));
         }
 
         for net in delay.drain(..) {
@@ -57,45 +62,49 @@ impl EvolutionaryTrainer {
         }
     }
 
-    fn add_to_next_gen(&mut self, net: NeuralNetwork) {
+    fn add_to_next_gen(&mut self, net: NeuralNetwork<W>) {
         let index = self.next_generation.len();
         self.next_generation.insert(index, net);
     }
 
-    pub fn get_next_generation(&self) -> &HashMap<usize, NeuralNetwork> {
+    pub fn get_next_generation(&self) -> &HashMap<usize, NeuralNetwork<W>> {
         &self.next_generation
     }
 }
 
 #[derive(Debug, Clone, RustcEncodable, RustcDecodable)]
-struct Species {
-    fitness: i64,
-    network: NeuralNetwork,
+struct Species<S: Clone, W: SampleRange + Float + FromPrimitive> {
+    fitness: S,
+    network: NeuralNetwork<W>,
 }
 
-impl Species {
-    fn new(fitness: i64, network: NeuralNetwork) -> Species {
+impl<S: Clone, W: SampleRange + Float + FromPrimitive> Species<S, W> {
+    fn new(fitness: S, network: NeuralNetwork<W>) -> Species<S, W> {
         Species {
             fitness: fitness,
             network: network,
         }
     }
 
-    fn get_fitness(&self) -> i64 {
-        self.fitness
+    fn get_fitness(&self) -> S {
+        self.fitness.clone()
     }
 
-    fn get_network(&self) -> &NeuralNetwork {
+    fn get_network(&self) -> &NeuralNetwork<W> {
         &self.network
     }
 
-    fn cross(&self, other: &Species) -> NeuralNetwork {
+    fn cross<F: Fn() -> W>(&self,
+                           other: &Species<S, W>,
+                           mutation_mult_picker: F,
+                           mutation_add_picker: F)
+                           -> NeuralNetwork<W> {
         let mut net_weights_1 = self.get_network().get_weights_and_bias();
         let mut net_weights_2 = other.get_network().get_weights_and_bias();
         assert_eq!(net_weights_1.len(), net_weights_2.len());
 
-        let net_iter_1: VecDrain<Vec<Vec<f64>>> = net_weights_1.drain(..);
-        let mut net_iter_2: VecDrain<Vec<Vec<f64>>> = net_weights_2.drain(..);
+        let net_iter_1: VecDrain<Vec<Vec<W>>> = net_weights_1.drain(..);
+        let mut net_iter_2: VecDrain<Vec<Vec<W>>> = net_weights_2.drain(..);
 
         let mut child_net = vec![];
 
@@ -108,8 +117,8 @@ impl Species {
 
             let mut child_layer = vec![];
 
-            let layer_iter_1: VecDrain<Vec<f64>> = layer_weights_1.drain(..);
-            let mut layer_iter_2: VecDrain<Vec<f64>> = layer_weights_2.drain(..);
+            let layer_iter_1: VecDrain<Vec<W>> = layer_weights_1.drain(..);
+            let mut layer_iter_2: VecDrain<Vec<W>> = layer_weights_2.drain(..);
 
             for mut neuron_weights_1 in layer_iter_1 {
                 let mut neuron_weights_2 = layer_iter_2.next()
@@ -118,29 +127,16 @@ impl Species {
 
                 let mut child_neuron = vec![];
 
-                let neuron_iter_1: VecDrain<f64> = neuron_weights_1.drain(..);
-                let mut neuron_iter_2: VecDrain<f64> = neuron_weights_2.drain(..);
+                let neuron_iter_1: VecDrain<W> = neuron_weights_1.drain(..);
+                let mut neuron_iter_2: VecDrain<W> = neuron_weights_2.drain(..);
 
                 for weight_1 in neuron_iter_1 {
                     let weight_2 = neuron_iter_2.next()
                         .unwrap_or_else(|| panic!("Neuron iter 2 next was none"));
 
-                    let mutation_mult = {
-                        if rng.gen_range(0, 20) == 0 {
-                            rng.choose(&vec![-1.0, 1.0]).unwrap_or_else(|| panic!("FUCK YOU")) *
-                            rng.gen_range(0.5, 2.0)
-                        } else {
-                            1.0
-                        }
-                    };
+                    let mutation_mult = mutation_mult_picker();
 
-                    let mutation_add = {
-                        if rng.gen_range(0, 20) == 0 {
-                            rng.gen_range(-0.2, 0.2)
-                        } else {
-                            0.0
-                        }
-                    };
+                    let mutation_add = mutation_add_picker();
 
                     child_neuron.push(*rng.choose(&[weight_1, weight_2])
                         .unwrap_or_else(|| panic!("Not fucking possible")) *

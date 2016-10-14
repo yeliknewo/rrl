@@ -67,3 +67,9 @@ impl OrthographicHelper {
         Matrix4::from(self.ortho)
     }
 }
+
+impl AsRef<OrthographicHelper> for OrthographicHelper {
+    fn as_ref(&self) -> &OrthographicHelper {
+        self
+    }
+}

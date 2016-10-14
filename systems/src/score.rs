@@ -13,12 +13,13 @@ pub const STARTING_VELOCITY: Vector3<Coord> = Vector3 {
 };
 
 pub struct ScoreSystem {
-    feeder_front_channel: FrontChannel<ScoreToFeeder, ScoreFromFeeder>,
+    feeder_front_channel: FrontChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
     time: f64,
 }
 
 impl ScoreSystem {
-    pub fn new(feeder_front_channel: FrontChannel<ScoreToFeeder, ScoreFromFeeder>) -> ScoreSystem {
+    pub fn new(feeder_front_channel: FrontChannel<ScoreToFeeder<f64>, ScoreFromFeeder>)
+               -> ScoreSystem {
         ScoreSystem {
             feeder_front_channel: feeder_front_channel,
             time: 0.0,

@@ -1,9 +1,9 @@
 use utils::Player;
 
 #[derive(Debug)]
-pub enum ScoreToFeeder {
-    Lose(Player, f64, f64),
-    LoseBoth(f64, f64),
+pub enum ScoreToFeeder<S> {
+    Lose(Player, S, S),
+    LoseBoth(S, S),
 }
 
 #[derive(Debug)]

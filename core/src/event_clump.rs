@@ -25,6 +25,7 @@ pub struct BackEventClump {
     ai: Option<BackChannel<MainToAi, MainFromAi>>,
 }
 
+#[allow(dead_code)]
 impl BackEventClump {
     fn new(render: BackChannel<MainToRender, MainFromRender>,
            control: BackChannel<MainToControl, MainFromControl>,
@@ -56,6 +57,7 @@ impl BackEventClump {
     }
 }
 
+#[allow(dead_code)]
 pub struct FrontEventClump {
     render: Option<FrontChannel<MainToRender, MainFromRender>>,
     control: Option<FrontChannel<MainToControl, MainFromControl>>,
@@ -63,6 +65,7 @@ pub struct FrontEventClump {
     ai: Option<FrontChannel<MainToAi, MainFromAi>>,
 }
 
+#[allow(dead_code)]
 impl FrontEventClump {
     fn new(render: FrontChannel<MainToRender, MainFromRender>,
            control: FrontChannel<MainToControl, MainFromControl>,
