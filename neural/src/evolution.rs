@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use std::vec::Drain as VecDrain;
+use network::NeuralNetwork;
+use num::{Float, FromPrimitive};
 use rand::{Rng, thread_rng};
 use rand::distributions::range::SampleRange;
-use num::{Float, FromPrimitive};
-use network::NeuralNetwork;
+use std::collections::HashMap;
+use std::vec::Drain as VecDrain;
 
 #[derive(Debug, Clone, RustcEncodable, RustcDecodable)]
 pub struct EvolutionaryTrainer<S: Ord + Clone, W: Float + SampleRange + FromPrimitive> {
@@ -23,7 +23,8 @@ impl<S: Ord + Clone, W: SampleRange + Float + FromPrimitive> EvolutionaryTrainer
                                mut rewards: HashMap<usize, S>,
                                mutation_mult_picker: &F,
                                mutation_add_picker: &F) {
-        assert_eq!(self.next_generation.len(), rewards.len());
+        assert_eq!(self.next_generation.len(),
+                   rewards.len());
 
         let drop_count = 4;
 
@@ -32,9 +33,7 @@ impl<S: Ord + Clone, W: SampleRange + Float + FromPrimitive> EvolutionaryTrainer
             self.generation.push(Species::new(reward.1,
                                               self.next_generation
                                                   .remove(&reward.0)
-                                                  .unwrap_or_else(|| {
-                                                      panic!("Next Gen remove reward.o was none")
-                                                  })));
+                                                  .unwrap_or_else(|| panic!("Next Gen remove reward.o was none"))));
         }
 
         self.generation.sort_by_key(|species| species.get_fitness());
@@ -48,13 +47,17 @@ impl<S: Ord + Clone, W: SampleRange + Float + FromPrimitive> EvolutionaryTrainer
         }
 
         for _ in 0..(2 + drop_count) {
-            self.add_to_next_gen(first.cross(&second, mutation_mult_picker, mutation_add_picker));
+            self.add_to_next_gen(first.cross(&second,
+                                             mutation_mult_picker,
+                                             mutation_add_picker));
         }
 
         let mut delay = vec![];
 
         for species in self.generation.drain(..) {
-            delay.push(first.cross(&species, mutation_mult_picker, mutation_add_picker));
+            delay.push(first.cross(&species,
+                                   mutation_mult_picker,
+                                   mutation_add_picker));
         }
 
         for net in delay.drain(..) {
@@ -62,9 +65,11 @@ impl<S: Ord + Clone, W: SampleRange + Float + FromPrimitive> EvolutionaryTrainer
         }
     }
 
-    fn add_to_next_gen(&mut self, net: NeuralNetwork<W>) {
+    fn add_to_next_gen(&mut self,
+                       net: NeuralNetwork<W>) {
         let index = self.next_generation.len();
-        self.next_generation.insert(index, net);
+        self.next_generation.insert(index,
+                                    net);
     }
 
     pub fn get_next_generation(&self) -> &HashMap<usize, NeuralNetwork<W>> {
@@ -79,7 +84,9 @@ struct Species<S: Clone, W: SampleRange + Float + FromPrimitive> {
 }
 
 impl<S: Clone, W: SampleRange + Float + FromPrimitive> Species<S, W> {
-    fn new(fitness: S, network: NeuralNetwork<W>) -> Species<S, W> {
+    fn new(fitness: S,
+           network: NeuralNetwork<W>)
+           -> Species<S, W> {
         Species {
             fitness: fitness,
             network: network,
@@ -101,7 +108,8 @@ impl<S: Clone, W: SampleRange + Float + FromPrimitive> Species<S, W> {
                            -> NeuralNetwork<W> {
         let mut net_weights_1 = self.get_network().get_weights_and_bias();
         let mut net_weights_2 = other.get_network().get_weights_and_bias();
-        assert_eq!(net_weights_1.len(), net_weights_2.len());
+        assert_eq!(net_weights_1.len(),
+                   net_weights_2.len());
 
         let net_iter_1: VecDrain<Vec<Vec<W>>> = net_weights_1.drain(..);
         let mut net_iter_2: VecDrain<Vec<Vec<W>>> = net_weights_2.drain(..);
@@ -113,7 +121,8 @@ impl<S: Clone, W: SampleRange + Float + FromPrimitive> Species<S, W> {
         for mut layer_weights_1 in net_iter_1 {
             let mut layer_weights_2 = net_iter_2.next()
                 .unwrap_or_else(|| panic!("Net 2 iter next was none"));
-            assert_eq!(layer_weights_1.len(), layer_weights_2.len());
+            assert_eq!(layer_weights_1.len(),
+                       layer_weights_2.len());
 
             let mut child_layer = vec![];
 
@@ -123,7 +132,8 @@ impl<S: Clone, W: SampleRange + Float + FromPrimitive> Species<S, W> {
             for mut neuron_weights_1 in layer_iter_1 {
                 let mut neuron_weights_2 = layer_iter_2.next()
                     .unwrap_or_else(|| panic!("Layer iter 2 next was none"));
-                assert_eq!(neuron_weights_1.len(), neuron_weights_2.len());
+                assert_eq!(neuron_weights_1.len(),
+                           neuron_weights_2.len());
 
                 let mut child_neuron = vec![];
 
@@ -139,9 +149,7 @@ impl<S: Clone, W: SampleRange + Float + FromPrimitive> Species<S, W> {
                     let mutation_add = mutation_add_picker();
 
                     child_neuron.push(*rng.choose(&[weight_1, weight_2])
-                        .unwrap_or_else(|| panic!("Not fucking possible")) *
-                                      mutation_mult +
-                                      mutation_add);
+                        .unwrap_or_else(|| panic!("Not fucking possible")) * mutation_mult + mutation_add);
                 }
 
                 child_layer.push(child_neuron);

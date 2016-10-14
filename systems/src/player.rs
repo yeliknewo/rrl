@@ -1,8 +1,8 @@
-use components::{CompPlayer, CompMoving};
-use specs::{System, RunArg, Join};
-use utils::{Delta, Coord};
+use components::{CompMoving, CompPlayer};
 use event::BackChannel;
-use event_enums::control_x_player::{ControlToPlayer, ControlFromPlayer};
+use event_enums::control_x_player::{ControlFromPlayer, ControlToPlayer};
+use specs::{Join, RunArg, System};
+use utils::{Coord, Delta};
 
 const SPEED: Coord = 5.0;
 
@@ -11,16 +11,18 @@ pub struct PlayerSystem {
 }
 
 impl PlayerSystem {
-    pub fn new(control_back_channel: BackChannel<ControlToPlayer, ControlFromPlayer>)
-               -> PlayerSystem {
-        PlayerSystem { control_back_channel: control_back_channel }
+    pub fn new(control_back_channel: BackChannel<ControlToPlayer, ControlFromPlayer>) -> PlayerSystem {
+        PlayerSystem {
+            control_back_channel: control_back_channel,
+        }
     }
 }
 
 impl System<Delta> for PlayerSystem {
-    fn run(&mut self, arg: RunArg, _: Delta) {
-        let (players, mut movings) =
-            arg.fetch(|w| (w.read::<CompPlayer>(), w.write::<CompMoving>()));
+    fn run(&mut self,
+           arg: RunArg,
+           _: Delta) {
+        let (players, mut movings) = arg.fetch(|w| (w.read::<CompPlayer>(), w.write::<CompMoving>()));
 
         while let Some(event) = self.control_back_channel.try_recv_to() {
             match event {

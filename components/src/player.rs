@@ -7,7 +7,9 @@ pub struct CompPlayer {
 
 impl CompPlayer {
     pub fn new(player: Player) -> CompPlayer {
-        CompPlayer { player: player }
+        CompPlayer {
+            player: player,
+        }
     }
 
     pub fn get_player(&self) -> Player {

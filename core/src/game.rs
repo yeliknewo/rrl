@@ -1,16 +1,15 @@
-
+use ::{Setup, SetupNoRender};
 use components::{Camera, CompMoving, CompPlayer, RenderData, RenderId, Transform};
-use specs::{Planner, World};
-use time::precise_time_ns;
-use graphics::{OutColor, OutDepth, GlFactory};
-use utils::{OrthographicHelper, Delta, FpsCounter};
 use event::BackChannel;
-use event_enums::main_x_game::{MainToGame, MainFromGame};
-
-use systems::RenderSystem;
 
 use event_clump::BackEventClump;
-use ::{Setup, SetupNoRender};
+use event_enums::main_x_game::{MainFromGame, MainToGame};
+use graphics::{GlFactory, OutColor, OutDepth};
+use specs::{Planner, World};
+
+use systems::RenderSystem;
+use time::precise_time_ns;
+use utils::{Delta, FpsCounter, OrthographicHelper};
 
 pub struct Game {
     planner: Planner<Delta>,
@@ -35,10 +34,12 @@ impl Game {
             world.register::<RenderId>();
             world.register::<Transform>();
 
-            Planner::<Delta>::new(world, 8)
+            Planner::<Delta>::new(world,
+                                  8)
         };
 
-        setup(&mut planner, &mut back_event_clump);
+        setup(&mut planner,
+              &mut back_event_clump);
 
         // planner.mut_world()
         //     .create_now()
@@ -123,7 +124,8 @@ impl Game {
             world.register::<RenderId>();
             world.register::<Transform>();
 
-            Planner::<Delta>::new(world, 8)
+            Planner::<Delta>::new(world,
+                                  8)
         };
 
         let mut renderer = RenderSystem::new(back_event_clump.take_render()
@@ -220,7 +222,9 @@ impl Game {
         //
         // planner.add_system(MovingSystem::new(), "moving", 15);
         //
-        planner.add_system(renderer, "renderer", 10);
+        planner.add_system(renderer,
+                           "renderer",
+                           10);
 
         Game {
             planner: planner,

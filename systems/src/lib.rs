@@ -7,19 +7,17 @@ pub extern crate event_enums;
 pub extern crate neural;
 
 pub mod crates {
-    pub use ::{components, event_enums, event, neural};
-    pub use event_enums::crates::{getopts, graphics, gfx, gfx_device_gl, find_folder, image,
-                                  utils, cgmath, rustc_serialize};
-    pub use neural::crates::{rand, num};
+    pub use ::{components, event, event_enums, neural};
     pub use components::crates::specs;
+    pub use event_enums::crates::{cgmath, find_folder, getopts, gfx, gfx_device_gl, graphics, image, rustc_serialize, utils};
     #[cfg(feature = "g_glutin")]
-    pub use event_enums::crates::{glutin, gfx_window_glutin};
+    pub use event_enums::crates::{gfx_window_glutin, glutin};
     #[cfg(feature = "g_sdl2")]
-    pub use event_enums::crates::{sdl2, gfx_window_sdl};
+    pub use event_enums::crates::{gfx_window_sdl, sdl2};
+    pub use neural::crates::{num, rand};
 }
 
-pub use crates::{num, getopts, rustc_serialize, specs, utils, cgmath, gfx, graphics, find_folder,
-                 rand};
+pub use crates::{cgmath, find_folder, getopts, gfx, graphics, num, rand, rustc_serialize, specs, utils};
 
 pub mod ai;
 pub mod control;

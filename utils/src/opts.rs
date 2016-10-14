@@ -1,5 +1,5 @@
-use std::env;
 use getopts::Options;
+use std::env;
 
 const H: &'static str = "h";
 
@@ -22,19 +22,37 @@ impl Opter {
 
         let mut opts = Options::new();
 
-        opts.optopt(R, "", "set file to load for starting network", "READ");
-        opts.optopt(W, "", "set file to save network", "WRITE");
-        opts.optopt(G, "", "set graphics mode", "GRAPHICS");
-        opts.optopt(T, "", "set fixed delta time", "DELTA_TIME");
-        opts.optflag(H, "help", "print this help menu");
+        opts.optopt(R,
+                    "",
+                    "set file to load for starting network",
+                    "READ");
+        opts.optopt(W,
+                    "",
+                    "set file to save network",
+                    "WRITE");
+        opts.optopt(G,
+                    "",
+                    "set graphics mode",
+                    "GRAPHICS");
+        opts.optopt(T,
+                    "",
+                    "set fixed delta time",
+                    "DELTA_TIME");
+        opts.optflag(H,
+                     "help",
+                     "print this help menu");
 
         let matches = match opts.parse(&args[1..]) {
             Ok(m) => m,
-            Err(err) => panic!("Opter Error while parsing: {:?}", err),
+            Err(err) => {
+                panic!("Opter Error while parsing: {:?}",
+                       err)
+            }
         };
 
         if matches.opt_present(H) {
-            Opter::print_usage(&program, opts);
+            Opter::print_usage(&program,
+                               opts);
         }
 
         let r = matches.opt_str(R);
@@ -69,8 +87,11 @@ impl Opter {
         self.t.as_ref()
     }
 
-    fn print_usage(program: &str, opts: Options) {
-        let brief = format!("Usage: {} FILE [options]", program);
-        print!("{}", opts.usage(&brief));
+    fn print_usage(program: &str,
+                   opts: Options) {
+        let brief = format!("Usage: {} FILE [options]",
+                            program);
+        print!("{}",
+               opts.usage(&brief));
     }
 }

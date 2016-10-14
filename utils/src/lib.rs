@@ -5,7 +5,7 @@ pub extern crate cgmath;
 pub extern crate getopts;
 
 pub mod crates {
-    pub use ::{rustc_serialize, cgmath, getopts};
+    pub use ::{cgmath, getopts, rustc_serialize};
 }
 
 pub mod fps_counter;
@@ -13,8 +13,8 @@ pub mod ortho_helper;
 pub mod opts;
 
 pub use fps_counter::FpsCounter;
-pub use ortho_helper::OrthographicHelper;
 pub use opts::Opter;
+pub use ortho_helper::OrthographicHelper;
 
 pub type Delta = f64;
 pub type Coord = f32;

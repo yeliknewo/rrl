@@ -17,12 +17,12 @@ pub extern crate image;
 pub extern crate utils;
 
 pub mod crates {
-    pub use utils::crates::{getopts, cgmath, rustc_serialize};
-    pub use ::{gfx, gfx_device_gl, find_folder, image, utils};
-    #[cfg(feature = "g_sdl2")]
-    pub use ::{sdl2, gfx_window_sdl};
+    pub use ::{find_folder, gfx, gfx_device_gl, image, utils};
     #[cfg(feature = "g_glutin")]
-    pub use ::{glutin, gfx_window_glutin};
+    pub use ::{gfx_window_glutin, glutin};
+    #[cfg(feature = "g_sdl2")]
+    pub use ::{gfx_window_sdl, sdl2};
+    pub use utils::crates::{cgmath, getopts, rustc_serialize};
 }
 
 pub use crates::{cgmath, rustc_serialize};
@@ -35,7 +35,7 @@ pub mod rl_sdl2;
 pub mod shaders;
 pub mod texture;
 
-pub use pipeline::{Vertex, Bundle, make_shaders, Packet, pipe, ProjectionData, TextureData};
+pub use pipeline::{Bundle, Packet, ProjectionData, TextureData, Vertex, make_shaders, pipe};
 pub use shaders::Shaders;
 pub use texture::load_texture;
 
@@ -63,7 +63,10 @@ pub struct GfxWindow<W, T> {
 #[cfg(feature = "g_glutin")]
 impl<T> GfxWindow<glutin::Window, T> {
     pub fn swap_buffers(&mut self) {
-        self.get_mut_window().swap_buffers().unwrap_or_else(|err| panic!("{:?}", err));
+        self.get_mut_window().swap_buffers().unwrap_or_else(|err| {
+            panic!("{:?}",
+                   err)
+        });
     }
 }
 

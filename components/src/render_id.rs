@@ -7,7 +7,9 @@ pub struct RenderId {
 
 impl RenderId {
     pub fn new(render_id_num: usize) -> RenderId {
-        RenderId { render_id_num: render_id_num }
+        RenderId {
+            render_id_num: render_id_num,
+        }
     }
 
     pub fn get_render_id_num(&self) -> usize {

@@ -6,7 +6,7 @@ pub mod layers {
 }
 
 pub mod main {
-    use ::{Name, Size, Tint, RenderType, Sprite};
+    use ::{Name, RenderType, Size, Sprite, Tint};
 
     pub const NAME: Name = "main.png";
     pub const SIZE: Size = &[256.0, 256.0];

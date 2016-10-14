@@ -1,6 +1,7 @@
-use cgmath::{Ortho, Matrix4};
+
 
 use ::GfxCoord;
+use cgmath::{Matrix4, Ortho};
 
 #[derive(Clone, Debug)]
 pub struct OrthographicHelper {

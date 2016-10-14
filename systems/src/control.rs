@@ -1,10 +1,10 @@
+use event::{BackChannel, FrontChannel};
+use event_enums::ai_x_control::{AiFromControl, AiToControl};
+use event_enums::control_x_player::{ControlFromPlayer, ControlToPlayer};
+use event_enums::main_x_control::{MainFromControl, MainToControl};
+use specs::{RunArg, System};
 use std::collections::HashMap;
-use specs::{System, RunArg};
 use utils::{Delta, Player};
-use event::{FrontChannel, BackChannel};
-use event_enums::ai_x_control::{AiToControl, AiFromControl};
-use event_enums::main_x_control::{MainToControl, MainFromControl};
-use event_enums::control_x_player::{ControlToPlayer, ControlFromPlayer};
 
 #[derive(Debug)]
 pub struct ControlSystem {
@@ -36,26 +36,42 @@ impl ControlSystem {
         }
     }
 
-    fn process_main_event(&mut self, event: MainToControl) {
+    fn process_main_event(&mut self,
+                          event: MainToControl) {
         match event {
             MainToControl::Up(amount, player) => {
-                self.send_repeat(ControlToPlayer::Up(amount, player))
+                self.send_repeat(ControlToPlayer::Up(amount,
+                                                     player))
             }
             MainToControl::Down(amount, player) => {
-                self.send_repeat(ControlToPlayer::Down(amount, player))
+                self.send_repeat(ControlToPlayer::Down(amount,
+                                                       player))
             }
             MainToControl::Left(amount, player) => {
-                self.send_repeat(ControlToPlayer::Left(amount, player))
+                self.send_repeat(ControlToPlayer::Left(amount,
+                                                       player))
             }
             MainToControl::Right(amount, player) => {
-                self.send_repeat(ControlToPlayer::Right(amount, player))
+                self.send_repeat(ControlToPlayer::Right(amount,
+                                                        player))
             }
-            MainToControl::JoyX(x, player) => self.handle_joy(Some(x), None, player),
-            MainToControl::JoyY(y, player) => self.handle_joy(None, Some(y), player),
+            MainToControl::JoyX(x, player) => {
+                self.handle_joy(Some(x),
+                                None,
+                                player)
+            }
+            MainToControl::JoyY(y, player) => {
+                self.handle_joy(None,
+                                Some(y),
+                                player)
+            }
         }
     }
 
-    fn handle_joy(&mut self, x_opt: Option<f64>, y_opt: Option<f64>, player: Player) {
+    fn handle_joy(&mut self,
+                  x_opt: Option<f64>,
+                  y_opt: Option<f64>,
+                  player: Player) {
         let x = {
             match x_opt {
                 Some(x) => x,
@@ -82,46 +98,66 @@ impl ControlSystem {
             }
         };
 
-        self.send_repeat(ControlToPlayer::Joy(x, y, player));
+        self.send_repeat(ControlToPlayer::Joy(x,
+                                              y,
+                                              player));
     }
 
-    fn process_ai_event(&mut self, event: AiToControl<f64>) {
+    fn process_ai_event(&mut self,
+                        event: AiToControl<f64>) {
         match event {
-            AiToControl::Up(amount, player) => self.send_once(ControlToPlayer::Up(amount, player)),
+            AiToControl::Up(amount, player) => {
+                self.send_once(ControlToPlayer::Up(amount,
+                                                   player))
+            }
             AiToControl::Down(amount, player) => {
-                self.send_once(ControlToPlayer::Down(amount, player))
+                self.send_once(ControlToPlayer::Down(amount,
+                                                     player))
             }
             AiToControl::Left(amount, player) => {
-                self.send_once(ControlToPlayer::Left(amount, player))
+                self.send_once(ControlToPlayer::Left(amount,
+                                                     player))
             }
             AiToControl::Right(amount, player) => {
-                self.send_once(ControlToPlayer::Right(amount, player))
+                self.send_once(ControlToPlayer::Right(amount,
+                                                      player))
             }
-            AiToControl::Joy(x, y, player) => self.send_once(ControlToPlayer::Joy(x, y, player)),
+            AiToControl::Joy(x, y, player) => {
+                self.send_once(ControlToPlayer::Joy(x,
+                                                    y,
+                                                    player))
+            }
         }
     }
 
-    fn send_repeat(&mut self, event: ControlToPlayer) {
+    fn send_repeat(&mut self,
+                   event: ControlToPlayer) {
         match &event {
             &ControlToPlayer::Up(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Y(player), event)
+                self.repeat_map.insert(RepeatEvent::Y(player),
+                                       event)
             }
             &ControlToPlayer::Down(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Y(player), event)
+                self.repeat_map.insert(RepeatEvent::Y(player),
+                                       event)
             }
             &ControlToPlayer::Right(_, player) => {
-                self.repeat_map.insert(RepeatEvent::X(player), event)
+                self.repeat_map.insert(RepeatEvent::X(player),
+                                       event)
             }
             &ControlToPlayer::Left(_, player) => {
-                self.repeat_map.insert(RepeatEvent::X(player), event)
+                self.repeat_map.insert(RepeatEvent::X(player),
+                                       event)
             }
             &ControlToPlayer::Joy(_, _, player) => {
-                self.repeat_map.insert(RepeatEvent::Joy(player), event)
+                self.repeat_map.insert(RepeatEvent::Joy(player),
+                                       event)
             }
         };
     }
 
-    fn send_once(&mut self, event: ControlToPlayer) {
+    fn send_once(&mut self,
+                 event: ControlToPlayer) {
         self.player_front_channel
             .as_mut()
             .unwrap_or_else(|| panic!("Player Front Channel was none"))
@@ -140,7 +176,9 @@ impl ControlSystem {
 }
 
 impl System<Delta> for ControlSystem {
-    fn run(&mut self, arg: RunArg, delta_time: Delta) {
+    fn run(&mut self,
+           arg: RunArg,
+           delta_time: Delta) {
         self.time += delta_time;
 
         if self.time >= 300.0 {

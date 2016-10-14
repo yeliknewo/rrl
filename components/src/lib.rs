@@ -3,7 +3,7 @@ pub extern crate specs;
 
 pub mod crates {
     pub use ::{specs, utils};
-    pub use utils::crates::{rustc_serialize, cgmath};
+    pub use utils::crates::{cgmath, rustc_serialize};
 }
 
 pub use crates::cgmath;

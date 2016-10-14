@@ -1,8 +1,8 @@
-use event::{FrontChannel, BackChannel, two_way_channel};
-use event_enums::main_x_ai::{MainToAi, MainFromAi};
-use event_enums::main_x_control::{MainToControl, MainFromControl};
-use event_enums::main_x_game::{MainToGame, MainFromGame};
-use event_enums::main_x_render::{MainToRender, MainFromRender};
+use event::{BackChannel, FrontChannel, two_way_channel};
+use event_enums::main_x_ai::{MainFromAi, MainToAi};
+use event_enums::main_x_control::{MainFromControl, MainToControl};
+use event_enums::main_x_game::{MainFromGame, MainToGame};
+use event_enums::main_x_render::{MainFromRender, MainToRender};
 
 pub fn make_event_clumps() -> (FrontEventClump, BackEventClump) {
     let (front_control, back_control) = two_way_channel();
@@ -10,9 +10,15 @@ pub fn make_event_clumps() -> (FrontEventClump, BackEventClump) {
     let (front_game, back_game) = two_way_channel();
     let (front_ai, back_ai) = two_way_channel();
 
-    let front_event_clump = FrontEventClump::new(front_render, front_control, front_game, front_ai);
+    let front_event_clump = FrontEventClump::new(front_render,
+                                                 front_control,
+                                                 front_game,
+                                                 front_ai);
 
-    let back_event_clump = BackEventClump::new(back_render, back_control, back_game, back_ai);
+    let back_event_clump = BackEventClump::new(back_render,
+                                               back_control,
+                                               back_game,
+                                               back_ai);
 
     (front_event_clump, back_event_clump)
 }

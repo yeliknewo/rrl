@@ -5,18 +5,16 @@ pub extern crate art;
 pub extern crate systems;
 
 pub mod crates {
-    pub use ::{systems, art, time};
-    pub use systems::crates::{gfx, graphics, utils, event_enums, getopts, components, event,
-                              neural, gfx_device_gl, find_folder, image, cgmath, rustc_serialize,
-                              rand, specs};
+    pub use ::{art, systems, time};
     pub use art::crates;
+    pub use systems::crates::{cgmath, components, event, event_enums, find_folder, getopts, gfx, gfx_device_gl, graphics, image, neural, rand, rustc_serialize, specs, utils};
     #[cfg(feature = "g_glutin")]
-    pub use systems::crates::{glutin, gfx_window_glutin};
+    pub use systems::crates::{gfx_window_glutin, glutin};
     #[cfg(feature = "g_sdl2")]
-    pub use systems::crates::{sdl2, gfx_window_sdl};
+    pub use systems::crates::{gfx_window_sdl, sdl2};
 }
 
-pub use crates::{components, event, gfx, graphics, utils, event_enums, specs, cgmath, find_folder};
+pub use crates::{cgmath, components, event, event_enums, find_folder, gfx, graphics, specs, utils};
 #[cfg(feature = "g_glutin")]
 pub use crates::glutin;
 #[cfg(feature = "g_sdl2")]
@@ -26,34 +24,35 @@ mod event_clump;
 mod game;
 mod handle_events;
 
-use std::thread;
+
+use event_clump::{BackEventClump, make_event_clumps};
+use event_enums::main_x_ai::{MainFromAi, MainToAi};
+use event_enums::main_x_control::MainFromControl;
+#[allow(unused_imports)]
+use event_enums::main_x_game::MainToGame;
+#[allow(unused_imports)]
+use event_enums::main_x_render::{MainFromRender, MainToRender};
+use game::Game;
 #[allow(unused_imports)]
 use gfx::Device;
 #[allow(unused_imports)]
-use graphics::{GlFactory, GlEncoder};
-
-use utils::OrthographicHelper;
-use event_enums::main_x_ai::{MainToAi, MainFromAi};
-use event_enums::main_x_control::MainFromControl;
-#[allow(unused_imports)]
-use event_enums::main_x_render::{MainToRender, MainFromRender};
-#[allow(unused_imports)]
-use event_enums::main_x_game::MainToGame;
-
-use event_clump::{BackEventClump, make_event_clumps};
-use game::Game;
+use graphics::{GlEncoder, GlFactory};
 
 use specs::Planner;
-use utils::Delta;
+use std::thread;
 
 use systems::render::RenderSystem;
+use utils::Delta;
+
+use utils::OrthographicHelper;
 
 pub type Setup = Box<Fn(&mut Planner<Delta>,
                         &mut BackEventClump,
                         &mut RenderSystem,
                         &mut GlFactory,
                         OrthographicHelper)>;
-pub type SetupNoRender = Box<Fn(&mut Planner<Delta>, &mut BackEventClump)>;
+pub type SetupNoRender = Box<Fn(&mut Planner<Delta>,
+                                &mut BackEventClump)>;
 
 #[cfg(all(feature = "g_glutin", feature = "g_sdl2"))]
 pub fn start<O>(delta_time: Option<f64>,
@@ -68,14 +67,26 @@ pub fn start<O>(delta_time: Option<f64>,
     match g_string {
         Some(g_string) => {
             if g_string.contains("glutin") {
-                start_window(setup, delta_time, screen_size, title, camera);
+                start_window(setup,
+                             delta_time,
+                             screen_size,
+                             title,
+                             camera);
             } else if g_string.contains("sdl2") {
-                start_window(setup, delta_time, screen_size, title, camera);
+                start_window(setup,
+                             delta_time,
+                             screen_size,
+                             title,
+                             camera);
             } else {
-                start_no_render(setup_no_render, delta_time);
+                start_no_render(setup_no_render,
+                                delta_time);
             }
         }
-        None => start_no_render(setup_no_render, delta_time),
+        None => {
+            start_no_render(setup_no_render,
+                            delta_time)
+        }
     }
 }
 
@@ -92,12 +103,20 @@ pub fn start<O>(delta_time: Option<f64>,
     match g_string {
         Some(g_string) => {
             if g_string.contains("glutin") {
-                start_window(setup, delta_time, screen_size, title, camera);
+                start_window(setup,
+                             delta_time,
+                             screen_size,
+                             title,
+                             camera);
             } else {
-                start_no_render(setup_no_render, delta_time);
+                start_no_render(setup_no_render,
+                                delta_time);
             }
         }
-        None => start_no_render(setup_no_render, delta_time),
+        None => {
+            start_no_render(setup_no_render,
+                            delta_time)
+        }
     }
 }
 
@@ -114,12 +133,20 @@ pub fn start<O>(delta_time: Option<f64>,
     match g_string {
         Some(g_string) => {
             if g_string.contains("sdl2") {
-                start_window(setup, delta_time, screen_size, title, camera);
+                start_window(setup,
+                             delta_time,
+                             screen_size,
+                             title,
+                             camera);
             } else {
-                start_no_render(setup_no_render, delta_time);
+                start_no_render(setup_no_render,
+                                delta_time);
             }
         }
-        None => start_no_render(setup_no_render, delta_time),
+        None => {
+            start_no_render(setup_no_render,
+                            delta_time)
+        }
     }
 }
 
@@ -133,13 +160,17 @@ pub fn start<O>(delta_time: Option<f64>,
                 setup_no_render: SetupNoRender)
     where O: AsRef<OrthographicHelper>
 {
-    start_no_render(setup_no_render, delta_time);
+    start_no_render(setup_no_render,
+                    delta_time);
 }
 
-fn start_no_render(setup: SetupNoRender, fixed_delta: Option<f64>) {
+fn start_no_render(setup: SetupNoRender,
+                   fixed_delta: Option<f64>) {
     let (mut front_event_clump, back_event_clump) = make_event_clumps();
 
-    let game = Game::new_no_render(setup, back_event_clump, fixed_delta);
+    let game = Game::new_no_render(setup,
+                                   back_event_clump,
+                                   fixed_delta);
 
     thread::spawn(|| {
         let mut game = game;
@@ -241,7 +272,8 @@ fn start_window<O>(setup: Setup,
             .try_recv_from() {
             match event {
                 MainFromRender::Encoder(mut encoder) => {
-                    if handle_events(&mut gfx_window, &mut front_event_clump) {
+                    if handle_events(&mut gfx_window,
+                                     &mut front_event_clump) {
                         front_event_clump.get_mut_render()
                             .unwrap_or_else(|| panic!("Render was none"))
                             .send_to(MainToRender::Encoder(encoder));
@@ -294,5 +326,8 @@ fn start_window<O>(setup: Setup,
         .unwrap_or_else(|| panic!("Game was none"))
         .send_to(MainToGame::Exit);
 
-    game_handle.join().unwrap_or_else(|err| panic!("Error: {:?}", err));
+    game_handle.join().unwrap_or_else(|err| {
+        panic!("Error: {:?}",
+               err)
+    });
 }

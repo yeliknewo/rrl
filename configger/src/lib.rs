@@ -4,8 +4,8 @@ pub mod crates {
     pub use ::yaml_rust;
 }
 
-use std::io::{self, Read, BufReader};
 use std::fs::File;
+use std::io::{self, BufReader, Read};
 
 use yaml_rust::{Yaml, YamlLoader};
 use yaml_rust::scanner::ScanError;
@@ -40,9 +40,7 @@ impl Configger {
                                 match key.as_str() {
                                     "graphics" => {
                                         match hash.1.as_str() {
-                                            Some("sdl") | Some("sdl2") => {
-                                                graphics = GraphicsType::Sdl2
-                                            }
+                                            Some("sdl") | Some("sdl2") => graphics = GraphicsType::Sdl2,
                                             Some("glutin") => graphics = GraphicsType::Glutin,
                                             _ => graphics = GraphicsType::None,
                                         }

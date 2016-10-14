@@ -2,12 +2,11 @@ pub extern crate graphics;
 
 pub mod crates {
     pub use ::graphics;
-    pub use graphics::crates::{gfx, gfx_device_gl, find_folder, image, utils, cgmath,
-                               rustc_serialize};
+    pub use graphics::crates::{cgmath, find_folder, gfx, gfx_device_gl, image, rustc_serialize, utils};
     #[cfg(feature = "g_glutin")]
-    pub use graphics::crates::{glutin, gfx_window_glutin};
+    pub use graphics::crates::{gfx_window_glutin, glutin};
     #[cfg(feature = "g_sdl2")]
-    pub use graphics::crates::{sdl2, gfx_window_sdl};
+    pub use graphics::crates::{gfx_window_sdl, sdl2};
 }
 
 pub use crates::gfx;
@@ -31,7 +30,9 @@ pub fn make_square_render() -> Packet {
 
     let rasterizer = Rasterizer::new_fill();
 
-    Packet::new(vertices, indices, rasterizer)
+    Packet::new(vertices,
+                indices,
+                rasterizer)
 }
 
 pub type RenderType = u8;

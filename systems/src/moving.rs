@@ -1,6 +1,6 @@
-use components::{Transform, CompMoving};
-use specs::{System, RunArg, Join};
-use utils::{Delta, Coord};
+use components::{CompMoving, Transform};
+use specs::{Join, RunArg, System};
+use utils::{Coord, Delta};
 
 const FRICTION: f32 = 1.0;
 
@@ -15,9 +15,10 @@ impl MovingSystem {
 }
 
 impl System<Delta> for MovingSystem {
-    fn run(&mut self, args: RunArg, delta_time: Delta) {
-        let (mut transforms, mut movings) =
-            args.fetch(|w| (w.write::<Transform>(), w.write::<CompMoving>()));
+    fn run(&mut self,
+           args: RunArg,
+           delta_time: Delta) {
+        let (mut transforms, mut movings) = args.fetch(|w| (w.write::<Transform>(), w.write::<CompMoving>()));
 
         for (mut transform, mut moving) in (&mut transforms, &mut movings).iter() {
             transform.add_pos(moving.get_velocity().clone() * delta_time as Coord);

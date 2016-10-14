@@ -1,5 +1,5 @@
-use specs::{Component, VecStorage};
 use cgmath::Vector3;
+use specs::{Component, VecStorage};
 use utils::Coord;
 
 pub struct CompMoving {
@@ -8,7 +8,9 @@ pub struct CompMoving {
 
 impl CompMoving {
     pub fn new(velocity: Vector3<Coord>) -> CompMoving {
-        CompMoving { velocity: velocity }
+        CompMoving {
+            velocity: velocity,
+        }
     }
 
     pub fn get_velocity(&self) -> &Vector3<Coord> {
