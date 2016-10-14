@@ -19,10 +19,10 @@ impl<S: Ord + Clone, W: SampleRange + Float + FromPrimitive> EvolutionaryTrainer
         }
     }
 
-    pub fn train<F: Fn() -> W>(&mut self,
-                               mut rewards: HashMap<usize, S>,
-                               mutation_mult_picker: &F,
-                               mutation_add_picker: &F) {
+    pub fn train<F1: Fn() -> W, F2: Fn() -> W>(&mut self,
+                                               mut rewards: HashMap<usize, S>,
+                                               mutation_mult_picker: &Box<F1>,
+                                               mutation_add_picker: &Box<F2>) {
         assert_eq!(self.next_generation.len(),
                    rewards.len());
 
@@ -101,11 +101,11 @@ impl<S: Clone, W: SampleRange + Float + FromPrimitive> Species<S, W> {
         &self.network
     }
 
-    fn cross<F: Fn() -> W>(&self,
-                           other: &Species<S, W>,
-                           mutation_mult_picker: F,
-                           mutation_add_picker: F)
-                           -> NeuralNetwork<W> {
+    fn cross<F1: Fn() -> W, F2: Fn() -> W>(&self,
+                                           other: &Species<S, W>,
+                                           mutation_mult_picker: &Box<F1>,
+                                           mutation_add_picker: &Box<F2>)
+                                           -> NeuralNetwork<W> {
         let mut net_weights_1 = self.get_network().get_weights_and_bias();
         let mut net_weights_2 = other.get_network().get_weights_and_bias();
         assert_eq!(net_weights_1.len(),

@@ -112,7 +112,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
                                                 5)
             .for_folder("networks")
             .unwrap_or_else(|err| {
-                panic!("{:?}",
+                panic!("Did you forget to make a networks folder?: {:?}",
                        err)
             });
 
@@ -286,10 +286,10 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
         self.rewards.push((index, reward.1));
     }
 
-    fn reward<F: Fn() -> W>(&mut self,
-                            reward: (Player, S),
-                            mutation_mult_picker: &F,
-                            mutation_add_picker: &F) {
+    fn reward<F1: Fn() -> W, F2: Fn() -> W>(&mut self,
+                                            reward: (Player, S),
+                                            mutation_mult_picker: &Box<F1>,
+                                            mutation_add_picker: &Box<F2>) {
         // warn!("Finished Game");
         self.prep_reward(reward);
 
@@ -303,9 +303,9 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
         self.prep_player_indices();
     }
 
-    fn train<F: Fn() -> W>(&mut self,
-                           mutation_mult_picker: &F,
-                           mutation_add_picker: &F) {
+    fn train<F1: Fn() -> W, F2: Fn() -> W>(&mut self,
+                                           mutation_mult_picker: &Box<F1>,
+                                           mutation_add_picker: &Box<F2>) {
         debug!("Training Next Generation");
         let mut rewards: HashMap<usize, S> = HashMap::new();
 
@@ -336,17 +336,17 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
     }
 }
 
-pub struct AiSystem<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable> {
+pub struct AiSystem<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> {
     main_back_channel: BackChannel<MainToAi, MainFromAi>,
     feeder_back_channel: BackChannel<FeederToAi<S, W>, FeederFromAi>,
     control_front_channel: FrontChannel<AiToControl<W>, AiFromControl>,
     brain_type: HashMap<Brain, BrainClump<S, W>>,
     brain_mapper: HashMap<Player, Brain>,
-    mutation_mult_picker: Box<Fn() -> W>,
-    mutation_add_picker: Box<Fn() -> W>,
+    mutation_mult_picker: Box<F1>,
+    mutation_add_picker: Box<F2>,
 }
 
-impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable> AiSystem<S, W> {
+impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> AiSystem<S, W, F1, F2> {
     pub fn new(main_back_channel: BackChannel<MainToAi, MainFromAi>,
                feeder_back_channel: BackChannel<FeederToAi<S, W>, FeederFromAi>,
                control_front_channel: FrontChannel<AiToControl<W>, AiFromControl>,
@@ -357,9 +357,9 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
                max_weight: W,
                min_bias: W,
                max_bias: W,
-               mutation_mult_picker: Fn() -> W,
-               mutation_add_picker: Fn() -> W)
-               -> AiSystem<S, W> {
+               mutation_mult_picker: Box<F1>,
+               mutation_add_picker: Box<F2>)
+               -> AiSystem<S, W, F1, F2> {
         let input_size = S::from_u8(4).unwrap_or_else(|| panic!("S From u8 4 was none"));
 
         let mut brain_type: HashMap<Brain, BrainClump<S, W>> = HashMap::new();
@@ -476,7 +476,7 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
     }
 }
 
-impl<'a, 'b, S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive + FromPrimitive + Num, W: Send + Float + SampleRange + FromPrimitive + Decodable + Encodable> System<Delta> for AiSystem<S, W> {
+impl<'a, 'b, S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive + FromPrimitive + Num, W: Send + Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> System<Delta> for AiSystem<S, W, F1, F2> {
     fn run(&mut self,
            arg: RunArg,
            _delta_time: Delta) {
