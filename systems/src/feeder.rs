@@ -1,5 +1,5 @@
 use components::{Transform, CompPlayer, CompMoving};
-use cgmath::{Vector3, MetricSpace};
+use cgmath::{Vector3};
 use specs::{System, RunArg, Join};
 use utils::{Delta, Coord, Player};
 use event::{FrontChannel, BackChannel};
@@ -10,32 +10,35 @@ use event_enums::score_x_feeder::{ScoreToFeeder, ScoreFromFeeder};
 // const TIME_WEIGHT: f64 = 1.0;
 
 pub trait OnePlayerLoseFn<S>: Fn(Player, S, S) -> Vec<(Player, S)> {}
+pub trait BothPlayerLoseFn<S>: Fn(S, S) -> Vec<(Player, S)> {}
 
-pub struct FeederSystem<T: Send + OnePlayerLoseFn<f64>> {
-    ai_front_channel: FrontChannel<FeederToAi<f64>, FeederFromAi>,
+pub struct FeederSystem<T: Send + OnePlayerLoseFn<f64>, F: Send + BothPlayerLoseFn<f64>> {
+    ai_front_channel: FrontChannel<FeederToAi<f64, f64>, FeederFromAi>,
     score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
     one_player_lose: T,
+    both_player_lose: F,
     time: f64,
 }
 
-impl<T> FeederSystem<T>
-    where T: Send + OnePlayerLoseFn<f64>
+impl<T, F> FeederSystem<T, F>
+    where T: Send + OnePlayerLoseFn<f64>, F: Send + BothPlayerLoseFn<f64>
 {
-    pub fn new(ai_front_channel: FrontChannel<FeederToAi<f64>, FeederFromAi>,
+    pub fn new(ai_front_channel: FrontChannel<FeederToAi<f64, f64>, FeederFromAi>,
                score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
-               one_player_lose: T)
-               -> FeederSystem<T> {
+               one_player_lose: T, both_player_lose: F)
+               -> FeederSystem<T, F> {
         FeederSystem {
             ai_front_channel: ai_front_channel,
             score_back_channel: score_back_channel,
             time: 0.0,
             one_player_lose: one_player_lose,
+            both_player_lose: both_player_lose,
         }
     }
 }
 
-impl<T> System<Delta> for FeederSystem<T>
-    where T: Send + OnePlayerLoseFn<f64>
+impl<T, F> System<Delta> for FeederSystem<T, F>
+    where T: Send + OnePlayerLoseFn<f64>, F: Send + BothPlayerLoseFn<f64>
 {
     fn run(&mut self, arg: RunArg, delta_time: Delta) {
         self.time += delta_time;
@@ -51,10 +54,9 @@ impl<T> System<Delta> for FeederSystem<T>
                     }));
                     self.time = 0.0;
                 }
-                ScoreToFeeder::LoseBoth(time_add_one, time_add_two) => {
+                ScoreToFeeder::LoseBoth(score_1, score_2) => {
                     self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
-                        vec![(Player::One, 0),//((time_add_one + self.time) * TIME_WEIGHT) as i64),
-                             (Player::Two, 0)]//((time_add_two + self.time) * TIME_WEIGHT) as i64)]
+                        (self.both_player_lose)(score_1, score_2)
                     }));
                     self.time = 0.0;
                 }
@@ -67,7 +69,7 @@ impl<T> System<Delta> for FeederSystem<T>
             player_data.push((player.get_player(), transform.get_pos(), moving.get_velocity()));
         }
 
-        let center = Vector3::new(0.0, 0.0, 0.0);
+        // let center = Vector3::new(0.0, 0.0, 0.0);
 
         self.ai_front_channel.send_to(FeederToAi::Reward(player_data.iter()
             .filter_map(|me| {
@@ -82,8 +84,8 @@ impl<T> System<Delta> for FeederSystem<T>
                     .collect::<Vec<Vector3<Coord>>>();
                 if other.len() == 1 {
                     match me.0 {
-                        Player::One => Some((me.0, -1)),//-me.1.distance(center) as i64)),
-                        Player::Two => Some((me.0, 1)),//-me.1.distance(center) as i64)),
+                        Player::One => Some((me.0, -1.0)),//-me.1.distance(center) as i64)),
+                        Player::Two => Some((me.0, 1.0)),//-me.1.distance(center) as i64)),
                     }
                 } else {
                     None
