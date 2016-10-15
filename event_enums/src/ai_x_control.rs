@@ -7,6 +7,14 @@ pub enum AiToControl<W> {
     Left(W, Player),
     Right(W, Player),
     Joy(W, W, Player),
+    A(Player),
+    B(Player),
+    X(Player),
+    Y(Player),
+    L1(Player),
+    L2(Player),
+    R1(Player),
+    R2(Player),
 }
 
 #[derive(Debug)]

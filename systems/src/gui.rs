@@ -7,12 +7,12 @@ use utils::Delta;
 
 pub struct GuiSystem {
     selected: Entity,
-    control_back_channel: BackChannel<ControlToGui, ControlFromGui>,
+    control_back_channel: BackChannel<ControlToGui<f64>, ControlFromGui>,
 }
 
 impl GuiSystem {
     pub fn new(selected: Entity,
-               control_back_channel: BackChannel<ControlToGui, ControlFromGui>)
+               control_back_channel: BackChannel<ControlToGui<f64>, ControlFromGui>)
                -> GuiSystem {
         GuiSystem {
             selected: selected,
@@ -67,6 +67,18 @@ impl GuiSystem {
             self.selected = down;
         }
     }
+
+    fn select_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self,
+                                                                                                                                             guis: &Storage<Gui, T1, T2>,
+                                                                                                                                             render_datas: &mut Storage<RenderData, T1, T3>) {
+
+    }
+
+    fn cancel_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self,
+                                                                                                                                             guis: &Storage<Gui, T1, T2>,
+                                                                                                                                             render_datas: &mut Storage<RenderData, T1, T3>) {
+
+    }
 }
 
 impl System<Delta> for GuiSystem {
@@ -93,25 +105,61 @@ impl System<Delta> for GuiSystem {
                     self.right_event(&guis,
                                      &mut render_datas)
                 }
-                ControlToGui::Joy(x, y, _player) => {
-                    if x.abs() > y.abs() {
-                        if x > 0.0 {
-                            self.right_event(&guis,
-                                             &mut render_datas);
+                ControlToGui::Joy(x_opt, y_opt, _player) => {
+                    if let Some(x) = x_opt {
+                        if let Some(y) = y_opt {
+                            if x.abs() > y.abs() {
+                                if x > 0.0 {
+                                    self.right_event(&guis,
+                                                     &mut render_datas);
+                                } else {
+                                    self.left_event(&guis,
+                                                    &mut render_datas);
+                                }
+                            } else {
+                                if y > 0.0 {
+                                    self.up_event(&guis,
+                                                  &mut render_datas);
+                                } else {
+                                    self.down_event(&guis,
+                                                    &mut render_datas);
+                                }
+                            }
                         } else {
-                            self.left_event(&guis,
-                                            &mut render_datas);
+                            if x > 0.0 {
+                                self.right_event(&guis,
+                                                 &mut render_datas);
+                            } else {
+                                self.left_event(&guis,
+                                                &mut render_datas);
+                            }
                         }
                     } else {
-                        if y > 0.0 {
-                            self.up_event(&guis,
-                                          &mut render_datas);
-                        } else {
-                            self.down_event(&guis,
-                                            &mut render_datas);
+                        if let Some(y) = y_opt {
+                            if y > 0.0 {
+                                self.up_event(&guis,
+                                              &mut render_datas);
+                            } else {
+                                self.down_event(&guis,
+                                                &mut render_datas);
+                            }
                         }
                     }
                 }
+                ControlToGui::A(_player) => {
+                    self.select_event(&guis,
+                                      &mut render_datas);
+                }
+                ControlToGui::B(_player) => {
+                    self.cancel_event(&guis,
+                                      &mut render_datas);
+                }
+                ControlToGui::X(_player) => {}
+                ControlToGui::Y(_player) => {}
+                ControlToGui::L1(_player) => {}
+                ControlToGui::L2(_player) => {}
+                ControlToGui::R1(_player) => {}
+                ControlToGui::R2(_player) => {}
             }
         }
     }
