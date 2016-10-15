@@ -2,6 +2,7 @@ use specs::{Component, VecStorage};
 
 #[derive(Debug)]
 pub struct RenderData {
+    default_tint: [f32; 4],
     tint: [f32; 4],
     layer: u8,
     spritesheet_rect: &'static [f32; 4],
@@ -18,6 +19,7 @@ impl RenderData {
                spritesheet_size: &'static [f32; 2])
                -> RenderData {
         RenderData {
+            default_tint: tint.clone(),
             tint: tint,
             layer: layer,
             spritesheet_rect: spritesheet_rect,
@@ -64,6 +66,15 @@ impl RenderData {
                     tint: [f32; 4]) {
         self.tint = tint;
         self.set_dirty();
+    }
+
+    pub fn reset_tint(&mut self) {
+        self.tint = self.default_tint;
+        self.set_dirty();
+    }
+
+    pub fn get_default_tint(&self) -> [f32; 4] {
+        self.default_tint.clone()
     }
 
     pub fn get_layer(&self) -> u8 {
