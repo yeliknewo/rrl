@@ -1,5 +1,6 @@
 use event::{BackChannel, FrontChannel};
 use event_enums::ai_x_control::{AiFromControl, AiToControl};
+use event_enums::control_x_gui::{ControlFromGui, ControlToGui};
 use event_enums::control_x_player::{ControlFromPlayer, ControlToPlayer};
 use event_enums::main_x_control::{MainFromControl, MainToControl};
 use specs::{RunArg, System};
@@ -11,6 +12,7 @@ pub struct ControlSystem {
     main_back_channel: BackChannel<MainToControl, MainFromControl>,
     ai_back_channel: BackChannel<AiToControl<f64>, AiFromControl>,
     player_front_channel: Option<FrontChannel<ControlToPlayer, ControlFromPlayer>>,
+    gui_front_channel: Option<FrontChannel<ControlToGui, ControlFromGui>>,
     repeat_map: HashMap<RepeatEvent, ControlToPlayer>,
     time: f64,
 }
@@ -25,12 +27,14 @@ enum RepeatEvent {
 impl ControlSystem {
     pub fn new(main_back_channel: BackChannel<MainToControl, MainFromControl>,
                ai_back_channel: BackChannel<AiToControl<f64>, AiFromControl>,
-               player_front_channel: FrontChannel<ControlToPlayer, ControlFromPlayer>)
+               player_front_channel: FrontChannel<ControlToPlayer, ControlFromPlayer>,
+               gui_front_channel: FrontChannel<ControlToGui, ControlFromGui>)
                -> ControlSystem {
         ControlSystem {
             main_back_channel: main_back_channel,
             ai_back_channel: ai_back_channel,
             player_front_channel: Some(player_front_channel),
+            gui_front_channel: Some(gui_front_channel),
             repeat_map: HashMap::new(),
             time: 0.0,
         }
@@ -165,13 +169,18 @@ impl ControlSystem {
     }
 
     fn trigger_repeats(&mut self) {
-        let mut channel = self.player_front_channel
+        let mut player_channel = self.player_front_channel
             .take()
             .unwrap_or_else(|| panic!("Player Front Channel was none"));
+        let mut gui_channel = self.gui_front_channel
+            .take()
+            .unwrap_or_else(|| panic!("Gui Front Channel was none"));
         for value in self.repeat_map.values() {
-            channel.send_to(value.clone());
+            player_channel.send_to(value.clone());
+            gui_channel.send_to(ControlToGui::from(value.clone()));
         }
-        self.player_front_channel = Some(channel);
+        self.player_front_channel = Some(player_channel);
+        self.gui_front_channel = Some(gui_channel);
     }
 }
 
