@@ -26,7 +26,7 @@ pub fn make_event_clumps() -> (FrontEventClump, BackEventClump) {
 #[allow(dead_code)]
 pub struct BackEventClump {
     render: Option<BackChannel<MainToRender, MainFromRender>>,
-    control: Option<BackChannel<MainToControl, MainFromControl>>,
+    control: Option<BackChannel<MainToControl<f64>, MainFromControl>>,
     game: Option<BackChannel<MainToGame, MainFromGame>>,
     ai: Option<BackChannel<MainToAi, MainFromAi>>,
 }
@@ -34,7 +34,7 @@ pub struct BackEventClump {
 #[allow(dead_code)]
 impl BackEventClump {
     fn new(render: BackChannel<MainToRender, MainFromRender>,
-           control: BackChannel<MainToControl, MainFromControl>,
+           control: BackChannel<MainToControl<f64>, MainFromControl>,
            game: BackChannel<MainToGame, MainFromGame>,
            ai: BackChannel<MainToAi, MainFromAi>)
            -> BackEventClump {
@@ -50,7 +50,7 @@ impl BackEventClump {
         self.render.take()
     }
 
-    pub fn take_control(&mut self) -> Option<BackChannel<MainToControl, MainFromControl>> {
+    pub fn take_control(&mut self) -> Option<BackChannel<MainToControl<f64>, MainFromControl>> {
         self.control.take()
     }
 
@@ -66,7 +66,7 @@ impl BackEventClump {
 #[allow(dead_code)]
 pub struct FrontEventClump {
     render: Option<FrontChannel<MainToRender, MainFromRender>>,
-    control: Option<FrontChannel<MainToControl, MainFromControl>>,
+    control: Option<FrontChannel<MainToControl<f64>, MainFromControl>>,
     game: Option<FrontChannel<MainToGame, MainFromGame>>,
     ai: Option<FrontChannel<MainToAi, MainFromAi>>,
 }
@@ -74,7 +74,7 @@ pub struct FrontEventClump {
 #[allow(dead_code)]
 impl FrontEventClump {
     fn new(render: FrontChannel<MainToRender, MainFromRender>,
-           control: FrontChannel<MainToControl, MainFromControl>,
+           control: FrontChannel<MainToControl<f64>, MainFromControl>,
            game: FrontChannel<MainToGame, MainFromGame>,
            ai: FrontChannel<MainToAi, MainFromAi>)
            -> FrontEventClump {
@@ -106,7 +106,7 @@ impl FrontEventClump {
         self.render.as_mut()
     }
 
-    pub fn get_mut_control(&mut self) -> Option<&mut FrontChannel<MainToControl, MainFromControl>> {
+    pub fn get_mut_control(&mut self) -> Option<&mut FrontChannel<MainToControl<f64>, MainFromControl>> {
         self.control.as_mut()
     }
 

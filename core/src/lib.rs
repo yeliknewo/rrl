@@ -24,7 +24,6 @@ mod event_clump;
 mod game;
 mod handle_events;
 
-
 use event_clump::{BackEventClump, make_event_clumps};
 use event_enums::main_x_ai::{MainFromAi, MainToAi};
 use event_enums::main_x_control::MainFromControl;

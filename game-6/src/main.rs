@@ -194,15 +194,19 @@ fn main() {
                            40);
 
         let (control_to_player_front_channel, control_to_player_back_channel) = two_way_channel();
+        let (control_to_gui_front_channel, control_to_gui_back_channel) = two_way_channel();
 
         planner.add_system(ControlSystem::new(back_event_clump.take_control()
                                                   .unwrap_or_else(|| panic!("Control was none")),
                                               ai_to_control_back_channel,
-                                              control_to_player_front_channel),
+                                              control_to_player_front_channel,
+                                              control_to_gui_front_channel),
                            "control",
                            30);
 
-        planner.add_system(PlayerSystem::new(control_to_player_back_channel),
+        planner.add_system(PlayerSystem::new(control_to_player_back_channel,
+                                             5.0,
+                                             (|me, run_arg| {})),
                            "player",
                            20);
 
@@ -302,15 +306,19 @@ fn main() {
                            40);
 
         let (control_to_player_front_channel, control_to_player_back_channel) = two_way_channel();
+        let (control_to_gui_front_channel, control_to_gui_back_channel) = two_way_channel();
 
         planner.add_system(ControlSystem::new(back_event_clump.take_control()
                                                   .unwrap_or_else(|| panic!("Control was none")),
                                               ai_to_control_back_channel,
-                                              control_to_player_front_channel),
+                                              control_to_player_front_channel,
+                                              control_to_gui_front_channel),
                            "control",
                            30);
 
-        planner.add_system(PlayerSystem::new(control_to_player_back_channel),
+        planner.add_system(PlayerSystem::new(control_to_player_back_channel,
+                                             5.0,
+                                             (|me, run_arg| {})),
                            "player",
                            20);
 
