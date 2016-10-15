@@ -84,8 +84,6 @@ impl<T, F> System<Delta> for FeederSystem<T, F>
             player_data.push((player.get_player(), transform.get_pos(), moving.get_velocity()));
         }
 
-        // let center = Vector3::new(0.0, 0.0, 0.0);
-
         self.ai_front_channel.send_to(FeederToAi::Reward(player_data.iter()
             .filter_map(|me| {
                 let other = player_data.iter()
