@@ -1,5 +1,5 @@
 use ::{Setup, SetupNoRender};
-use components::{Camera, CompMoving, CompPlayer, RenderData, RenderId, Transform};
+use components::{Camera, CompMoving, CompPlayer, Gui, RenderData, RenderId, Transform};
 use event::BackChannel;
 
 use event_clump::BackEventClump;
@@ -33,6 +33,7 @@ impl Game {
             world.register::<RenderData>();
             world.register::<RenderId>();
             world.register::<Transform>();
+            world.register::<Gui>();
 
             Planner::<Delta>::new(world,
                                   8)
@@ -123,6 +124,7 @@ impl Game {
             world.register::<RenderData>();
             world.register::<RenderId>();
             world.register::<Transform>();
+            world.register::<Gui>();
 
             Planner::<Delta>::new(world,
                                   8)

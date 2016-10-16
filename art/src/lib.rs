@@ -15,6 +15,7 @@ use gfx::state::Rasterizer;
 use graphics::{Packet, Vertex};
 
 pub mod game_3;
+pub mod game_6;
 
 pub fn make_square_render() -> Packet {
     let vertices = vec!(

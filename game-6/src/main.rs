@@ -4,14 +4,14 @@ extern crate env_logger;
 
 extern crate core;
 
-use core::crates::art::{game_3, make_square_render};
+use core::crates::art::{game_3, game_6, make_square_render};
 use core::crates::cgmath::{Euler, Point3, Rad, Vector3};
-use core::crates::components::{Camera, CompMoving, CompPlayer, RenderData, Transform};
+use core::crates::components::{Camera, CompMoving, CompPlayer, Gui, RenderData, Transform};
 use core::crates::event::two_way_channel;
 use core::crates::find_folder::Search;
 use core::crates::graphics::load_texture;
 use core::crates::rand::{Rng, thread_rng};
-use core::crates::systems::{AiSystem, ControlSystem, FeederSystem, MovingSystem, PlayerSystem, ScoreSystem};
+use core::crates::systems::{AiSystem, ControlSystem, FeederSystem, GuiSystem, MovingSystem, PlayerSystem, ScoreSystem};
 use core::crates::utils::{Opter, OrthographicHelper, Player};
 
 use std::str::FromStr;
@@ -137,6 +137,28 @@ fn main() {
                                   game_3::main::SIZE))
             .build();
 
+        let selected = planner.mut_world()
+            .create_now()
+            .with(Transform::new(Vector3::new(0.0,
+                                              0.0,
+                                              0.0),
+                                 Euler::new(Rad(0.0),
+                                            Rad(0.0),
+                                            Rad(0.0)),
+                                 Vector3::new(1.0,
+                                              1.0,
+                                              1.0)))
+            .with(main_render.clone())
+            .with(RenderData::new(game_6::layers::GUI,
+                                  game_6::main::DEFAULT_TINT.clone(),
+                                  game_6::main::BOX,
+                                  game_6::main::SIZE))
+            .with(Gui::new(None,
+                           None,
+                           None,
+                           None))
+            .build();
+
 
         let (score_to_feeder_front_channel, score_to_feeder_back_channel) = two_way_channel();
 
@@ -204,9 +226,14 @@ fn main() {
                            "control",
                            30);
 
+        planner.add_system(GuiSystem::new(selected,
+                                          control_to_gui_back_channel),
+                           "gui",
+                           25);
+
         planner.add_system(PlayerSystem::new(control_to_player_back_channel,
                                              5.0,
-                                             (|me, run_arg| {})),
+                                             (|me, run_arg| run_arg.fetch(|_| {}))),
                            "player",
                            20);
 
@@ -249,6 +276,23 @@ fn main() {
                                               1.0)))
             .build();
 
+        let selected = planner.mut_world()
+            .create_now()
+            .with(Transform::new(Vector3::new(0.0,
+                                              0.0,
+                                              0.0),
+                                 Euler::new(Rad(0.0),
+                                            Rad(0.0),
+                                            Rad(0.0)),
+                                 Vector3::new(1.0,
+                                              1.0,
+                                              1.0)))
+            .with(Gui::new(None,
+                           None,
+                           None,
+                           None))
+            .build();
+
 
         let (score_to_feeder_front_channel, score_to_feeder_back_channel) = two_way_channel();
 
@@ -316,9 +360,14 @@ fn main() {
                            "control",
                            30);
 
+        planner.add_system(GuiSystem::new(selected,
+                                          control_to_gui_back_channel),
+                           "gui",
+                           25);
+
         planner.add_system(PlayerSystem::new(control_to_player_back_channel,
                                              5.0,
-                                             (|me, run_arg| {})),
+                                             (|me, run_arg| run_arg.fetch(|_| {}))),
                            "player",
                            20);
 
