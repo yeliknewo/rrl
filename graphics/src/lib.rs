@@ -63,10 +63,7 @@ pub struct GfxWindow<W, T> {
 #[cfg(feature = "g_glutin")]
 impl<T> GfxWindow<glutin::Window, T> {
     pub fn swap_buffers(&mut self) {
-        self.get_mut_window().swap_buffers().unwrap_or_else(|err| {
-            panic!("{:?}",
-                   err)
-        });
+        self.get_mut_window().swap_buffers().unwrap_or_else(|err| panic!("{:?}", err));
     }
 }
 
@@ -78,13 +75,7 @@ impl<T> GfxWindow<sdl2::video::Window, T> {
 }
 
 impl<W, T> GfxWindow<W, T> {
-    pub fn new(out_color: OutColor,
-               out_depth: OutDepth,
-               device: GlDevice,
-               factory: GlFactory,
-               window: W,
-               extras: T)
-               -> GfxWindow<W, T> {
+    pub fn new(out_color: OutColor, out_depth: OutDepth, device: GlDevice, factory: GlFactory, window: W, extras: T) -> GfxWindow<W, T> {
         GfxWindow {
             out_color: out_color,
             out_depth: out_depth,

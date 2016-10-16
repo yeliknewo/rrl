@@ -9,12 +9,7 @@ use utils::{Coord, Delta, Player};
 // const DISTANCE_WEIGHT: f32 = 5.0;
 // const TIME_WEIGHT: f64 = 1.0;
 
-pub struct FeederSystem<T: Send + Fn(Player,
-                           f64,
-                           f64) -> Vec<(Player, i64)>,
-                        F: Send + Fn(f64,
-                           f64) -> Vec<(Player, i64)>>
-{
+pub struct FeederSystem<T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>, F: Send + Fn(f64, f64) -> Vec<(Player, i64)>> {
     ai_front_channel: FrontChannel<FeederToAi<i64, f64>, FeederFromAi>,
     score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
     one_player_lose: T,
@@ -23,17 +18,10 @@ pub struct FeederSystem<T: Send + Fn(Player,
 }
 
 impl<T, F> FeederSystem<T, F>
-    where T: Send + Fn(Player,
-                f64,
-                f64) -> Vec<(Player, i64)>,
-          F: Send + Fn(f64,
-                f64) -> Vec<(Player, i64)>
+    where T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>,
+          F: Send + Fn(f64, f64) -> Vec<(Player, i64)>
 {
-    pub fn new(ai_front_channel: FrontChannel<FeederToAi<i64, f64>, FeederFromAi>,
-               score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
-               one_player_lose: T,
-               both_player_lose: F)
-               -> FeederSystem<T, F> {
+    pub fn new(ai_front_channel: FrontChannel<FeederToAi<i64, f64>, FeederFromAi>, score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>, one_player_lose: T, both_player_lose: F) -> FeederSystem<T, F> {
         FeederSystem {
             ai_front_channel: ai_front_channel,
             score_back_channel: score_back_channel,
@@ -45,15 +33,10 @@ impl<T, F> FeederSystem<T, F>
 }
 
 impl<T, F> System<Delta> for FeederSystem<T, F>
-    where T: Send + Fn(Player,
-                f64,
-                f64) -> Vec<(Player, i64)>,
-          F: Send + Fn(f64,
-                f64) -> Vec<(Player, i64)>
+    where T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>,
+          F: Send + Fn(f64, f64) -> Vec<(Player, i64)>
 {
-    fn run(&mut self,
-           arg: RunArg,
-           delta_time: Delta) {
+    fn run(&mut self, arg: RunArg, delta_time: Delta) {
         self.time += delta_time;
 
         let (transforms, players, movings) = arg.fetch(|w| (w.read::<Transform>(), w.read::<CompPlayer>(), w.read::<CompMoving>()));
@@ -62,16 +45,13 @@ impl<T, F> System<Delta> for FeederSystem<T, F>
             match event {
                 ScoreToFeeder::Lose(loser, score_1, score_2) => {
                     self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
-                        (self.one_player_lose)(loser,
-                                               score_1,
-                                               score_2)
+                        (self.one_player_lose)(loser, score_1, score_2)
                     }));
                     self.time = 0.0;
                 }
                 ScoreToFeeder::LoseBoth(score_1, score_2) => {
                     self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
-                        (self.both_player_lose)(score_1,
-                                                score_2)
+                        (self.both_player_lose)(score_1, score_2)
                     }));
                     self.time = 0.0;
                 }
@@ -124,8 +104,7 @@ impl<T, F> System<Delta> for FeederSystem<T, F>
                 }
             };
 
-            self.ai_front_channel.send_to(FeederToAi::WorldState(player,
-                                                                 world_state));
+            self.ai_front_channel.send_to(FeederToAi::WorldState(player, world_state));
         }
     }
 }

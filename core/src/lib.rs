@@ -45,131 +45,70 @@ use utils::Delta;
 
 use utils::OrthographicHelper;
 
-pub type Setup = Box<Fn(&mut Planner<Delta>,
-                        &mut BackEventClump,
-                        &mut RenderSystem,
-                        &mut GlFactory,
-                        OrthographicHelper)>;
-pub type SetupNoRender = Box<Fn(&mut Planner<Delta>,
-                                &mut BackEventClump)>;
+pub type Setup = Box<Fn(&mut Planner<Delta>, &mut BackEventClump, &mut RenderSystem, &mut GlFactory, OrthographicHelper)>;
+pub type SetupNoRender = Box<Fn(&mut Planner<Delta>, &mut BackEventClump)>;
 
 #[cfg(all(feature = "g_glutin", feature = "g_sdl2"))]
-pub fn start<O>(delta_time: Option<f64>,
-                g_string: Option<&String>,
-                screen_size: (u32, u32),
-                title: &str,
-                camera: O,
-                setup: Setup,
-                setup_no_render: SetupNoRender)
+pub fn start<O>(delta_time: Option<f64>, g_string: Option<&String>, screen_size: (u32, u32), title: &str, camera: O, setup: Setup, setup_no_render: SetupNoRender)
     where O: AsRef<OrthographicHelper>
 {
     match g_string {
         Some(g_string) => {
             if g_string.contains("glutin") {
-                start_window(setup,
-                             delta_time,
-                             screen_size,
-                             title,
-                             camera);
+                start_window(setup, delta_time, screen_size, title, camera);
             } else if g_string.contains("sdl2") {
-                start_window(setup,
-                             delta_time,
-                             screen_size,
-                             title,
-                             camera);
+                start_window(setup, delta_time, screen_size, title, camera);
             } else {
-                start_no_render(setup_no_render,
-                                delta_time);
+                start_no_render(setup_no_render, delta_time);
             }
         }
-        None => {
-            start_no_render(setup_no_render,
-                            delta_time)
-        }
+        None => start_no_render(setup_no_render, delta_time),
     }
 }
 
 #[cfg(all(not(feature = "g_sdl2"),feature = "g_glutin"))]
-pub fn start<O>(delta_time: Option<f64>,
-                g_string: Option<&String>,
-                screen_size: (u32, u32),
-                title: &str,
-                camera: O,
-                setup: Setup,
-                setup_no_render: SetupNoRender)
+pub fn start<O>(delta_time: Option<f64>, g_string: Option<&String>, screen_size: (u32, u32), title: &str, camera: O, setup: Setup, setup_no_render: SetupNoRender)
     where O: AsRef<OrthographicHelper>
 {
     match g_string {
         Some(g_string) => {
             if g_string.contains("glutin") {
-                start_window(setup,
-                             delta_time,
-                             screen_size,
-                             title,
-                             camera);
+                start_window(setup, delta_time, screen_size, title, camera);
             } else {
-                start_no_render(setup_no_render,
-                                delta_time);
+                start_no_render(setup_no_render, delta_time);
             }
         }
-        None => {
-            start_no_render(setup_no_render,
-                            delta_time)
-        }
+        None => start_no_render(setup_no_render, delta_time),
     }
 }
 
 #[cfg(all(feature = "g_sdl2", not(feature = "g_glutin")))]
-pub fn start<O>(delta_time: Option<f64>,
-                g_string: Option<&String>,
-                screen_size: (u32, u32),
-                title: &str,
-                camera: O,
-                setup: Setup,
-                setup_no_render: SetupNoRender)
+pub fn start<O>(delta_time: Option<f64>, g_string: Option<&String>, screen_size: (u32, u32), title: &str, camera: O, setup: Setup, setup_no_render: SetupNoRender)
     where O: AsRef<OrthographicHelper>
 {
     match g_string {
         Some(g_string) => {
             if g_string.contains("sdl2") {
-                start_window(setup,
-                             delta_time,
-                             screen_size,
-                             title,
-                             camera);
+                start_window(setup, delta_time, screen_size, title, camera);
             } else {
-                start_no_render(setup_no_render,
-                                delta_time);
+                start_no_render(setup_no_render, delta_time);
             }
         }
-        None => {
-            start_no_render(setup_no_render,
-                            delta_time)
-        }
+        None => start_no_render(setup_no_render, delta_time),
     }
 }
 
 #[cfg(all(not(feature = "g_sdl2"), not(feature = "g_glutin")))]
-pub fn start<O>(delta_time: Option<f64>,
-                _g: Option<&String>,
-                _size: (u32, u32),
-                _title: &str,
-                _ortho: O,
-                _setup: Setup,
-                setup_no_render: SetupNoRender)
+pub fn start<O>(delta_time: Option<f64>, _g: Option<&String>, _size: (u32, u32), _title: &str, _ortho: O, _setup: Setup, setup_no_render: SetupNoRender)
     where O: AsRef<OrthographicHelper>
 {
-    start_no_render(setup_no_render,
-                    delta_time);
+    start_no_render(setup_no_render, delta_time);
 }
 
-fn start_no_render(setup: SetupNoRender,
-                   fixed_delta: Option<f64>) {
+fn start_no_render(setup: SetupNoRender, fixed_delta: Option<f64>) {
     let (mut front_event_clump, back_event_clump) = make_event_clumps();
 
-    let game = Game::new_no_render(setup,
-                                   back_event_clump,
-                                   fixed_delta);
+    let game = Game::new_no_render(setup, back_event_clump, fixed_delta);
 
     thread::spawn(|| {
         let mut game = game;
@@ -206,11 +145,7 @@ fn start_no_render(setup: SetupNoRender,
 }
 
 #[cfg(any(feature = "g_glutin", feature = "g_sdl2"))]
-fn start_window<O>(setup: Setup,
-                   fixed_delta: Option<f64>,
-                   screen_size: (u32, u32),
-                   title: &str,
-                   ortho: O)
+fn start_window<O>(setup: Setup, fixed_delta: Option<f64>, screen_size: (u32, u32), title: &str, ortho: O)
     where O: AsRef<OrthographicHelper>
 {
     #[cfg(feature = "g_glutin")]
@@ -249,13 +184,7 @@ fn start_window<O>(setup: Setup,
     // warn!("Making Game");
     // let game = Game::new_no_render(back_event_clump);
 
-    let game = Game::new(setup,
-                         gfx_window.get_mut_factory(),
-                         back_event_clump,
-                         ortho.as_ref().clone(),
-                         out_color,
-                         out_depth,
-                         fixed_delta);
+    let game = Game::new(setup, gfx_window.get_mut_factory(), back_event_clump, ortho.as_ref().clone(), out_color, out_depth, fixed_delta);
 
     // warn!("Making Game Thread");
     let game_handle = thread::spawn(|| {
@@ -271,8 +200,7 @@ fn start_window<O>(setup: Setup,
             .try_recv_from() {
             match event {
                 MainFromRender::Encoder(mut encoder) => {
-                    if handle_events(&mut gfx_window,
-                                     &mut front_event_clump) {
+                    if handle_events(&mut gfx_window, &mut front_event_clump) {
                         front_event_clump.get_mut_render()
                             .unwrap_or_else(|| panic!("Render was none"))
                             .send_to(MainToRender::Encoder(encoder));
@@ -325,8 +253,5 @@ fn start_window<O>(setup: Setup,
         .unwrap_or_else(|| panic!("Game was none"))
         .send_to(MainToGame::Exit);
 
-    game_handle.join().unwrap_or_else(|err| {
-        panic!("Error: {:?}",
-               err)
-    });
+    game_handle.join().unwrap_or_else(|err| panic!("Error: {:?}", err));
 }

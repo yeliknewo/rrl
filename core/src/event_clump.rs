@@ -10,15 +10,9 @@ pub fn make_event_clumps() -> (FrontEventClump, BackEventClump) {
     let (front_game, back_game) = two_way_channel();
     let (front_ai, back_ai) = two_way_channel();
 
-    let front_event_clump = FrontEventClump::new(front_render,
-                                                 front_control,
-                                                 front_game,
-                                                 front_ai);
+    let front_event_clump = FrontEventClump::new(front_render, front_control, front_game, front_ai);
 
-    let back_event_clump = BackEventClump::new(back_render,
-                                               back_control,
-                                               back_game,
-                                               back_ai);
+    let back_event_clump = BackEventClump::new(back_render, back_control, back_game, back_ai);
 
     (front_event_clump, back_event_clump)
 }
@@ -33,11 +27,7 @@ pub struct BackEventClump {
 
 #[allow(dead_code)]
 impl BackEventClump {
-    fn new(render: BackChannel<MainToRender, MainFromRender>,
-           control: BackChannel<MainToControl<f64>, MainFromControl>,
-           game: BackChannel<MainToGame, MainFromGame>,
-           ai: BackChannel<MainToAi, MainFromAi>)
-           -> BackEventClump {
+    fn new(render: BackChannel<MainToRender, MainFromRender>, control: BackChannel<MainToControl<f64>, MainFromControl>, game: BackChannel<MainToGame, MainFromGame>, ai: BackChannel<MainToAi, MainFromAi>) -> BackEventClump {
         BackEventClump {
             render: Some(render),
             control: Some(control),
@@ -73,11 +63,7 @@ pub struct FrontEventClump {
 
 #[allow(dead_code)]
 impl FrontEventClump {
-    fn new(render: FrontChannel<MainToRender, MainFromRender>,
-           control: FrontChannel<MainToControl<f64>, MainFromControl>,
-           game: FrontChannel<MainToGame, MainFromGame>,
-           ai: FrontChannel<MainToAi, MainFromAi>)
-           -> FrontEventClump {
+    fn new(render: FrontChannel<MainToRender, MainFromRender>, control: FrontChannel<MainToControl<f64>, MainFromControl>, game: FrontChannel<MainToGame, MainFromGame>, ai: FrontChannel<MainToAi, MainFromAi>) -> FrontEventClump {
         FrontEventClump {
             render: Some(render),
             control: Some(control),

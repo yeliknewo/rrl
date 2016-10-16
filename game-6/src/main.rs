@@ -4,6 +4,7 @@ extern crate env_logger;
 
 extern crate core;
 
+pub use core::crates::{components, event_enums, specs, systems, utils};
 use core::crates::art::{game_3, game_6, make_square_render};
 use core::crates::cgmath::{Euler, Point3, Rad, Vector3};
 use core::crates::components::{Camera, CompMoving, CompPlayer, Gui, RenderData, Transform};
@@ -16,11 +17,10 @@ use core::crates::utils::{Opter, OrthographicHelper, Player};
 
 use std::str::FromStr;
 
+mod player_system;
+
 fn main() {
-    env_logger::init().unwrap_or_else(|err| {
-        panic!("Unable to Initate Env Logger: {}",
-               err)
-    });
+    env_logger::init().unwrap_or_else(|err| panic!("Unable to Initate Env Logger: {}", err));
 
     let opter = Opter::new();
 
@@ -54,129 +54,66 @@ fn main() {
                 g,
                 (width, height),
                 "Game 6",
-                OrthographicHelper::new(aspect_ratio,
-                                        left,
-                                        right,
-                                        near,
-                                        far),
+                OrthographicHelper::new(aspect_ratio, left, right, near, far),
                 Box::new(|planner, back_event_clump, renderer, factory, ortho| {
         planner.mut_world()
             .create_now()
-            .with(Camera::new(Point3::new(0.0,
-                                          0.0,
-                                          2.0),
-                              Point3::new(0.0,
-                                          0.0,
-                                          0.0),
-                              Vector3::new(0.0,
-                                           1.0,
-                                           0.0),
-                              ortho,
-                              true))
+            .with(Camera::new(Point3::new(0.0, 0.0, 2.0), Point3::new(0.0, 0.0, 0.0), Vector3::new(0.0, 1.0, 0.0), ortho, true))
             .build();
 
         let packet = make_square_render();
 
-        let assets = Search::ParentsThenKids(5,
-                                             3)
+        let assets = Search::ParentsThenKids(5, 3)
             .for_folder("assets")
-            .unwrap_or_else(|err| {
-                panic!("Did you forget to make an assets folder? Err: {:?}",
-                       err)
-            });
+            .unwrap_or_else(|err| panic!("Did you forget to make an assets folder? Err: {:?}", err));
 
         let main_render = {
-            let texture = load_texture(factory,
-                                       assets.join(game_3::main::NAME));
-            renderer.add_render(factory,
-                                &packet,
-                                texture)
+            let texture = load_texture(factory, assets.join(game_3::main::NAME));
+            renderer.add_render(factory, &packet, texture)
         };
 
         planner.mut_world()
             .create_now()
-            .with(CompMoving::new(Vector3::new(0.0,
-                                               0.0,
-                                               0.0)))
+            .with(CompMoving::new(Vector3::new(0.0, 0.0, 0.0)))
             .with(CompPlayer::new(Player::One))
-            .with(Transform::new(Vector3::new(0.0,
-                                              0.0,
-                                              0.0),
-                                 Euler::new(Rad(0.0),
-                                            Rad(0.0),
-                                            Rad(0.0)),
-                                 Vector3::new(1.0,
-                                              1.0,
-                                              1.0)))
+            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0), Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)), Vector3::new(1.0, 1.0, 1.0)))
             .with(main_render.clone())
-            .with(RenderData::new(game_3::layers::PLAYER,
-                                  *game_3::main::DEFAULT_TINT,
-                                  game_3::main::PLAYER_1_STAND,
-                                  game_3::main::SIZE))
+            .with(RenderData::new(game_3::layers::PLAYER, *game_3::main::DEFAULT_TINT, game_3::main::PLAYER_1_STAND, game_3::main::SIZE))
             .build();
 
         planner.mut_world()
             .create_now()
-            .with(CompMoving::new(Vector3::new(0.0,
-                                               0.0,
-                                               0.0)))
+            .with(CompMoving::new(Vector3::new(0.0, 0.0, 0.0)))
             .with(CompPlayer::new(Player::Two))
-            .with(Transform::new(Vector3::new(0.0,
-                                              0.0,
-                                              0.0),
-                                 Euler::new(Rad(0.0),
-                                            Rad(0.0),
-                                            Rad(0.0)),
-                                 Vector3::new(1.0,
-                                              1.0,
-                                              1.0)))
+            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0), Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)), Vector3::new(1.0, 1.0, 1.0)))
             .with(main_render.clone())
-            .with(RenderData::new(game_3::layers::PLAYER,
-                                  [1.0, 0.0, 0.0, 1.0],
-                                  game_3::main::PLAYER_1_STAND,
-                                  game_3::main::SIZE))
+            .with(RenderData::new(game_3::layers::PLAYER, [1.0, 0.0, 0.0, 1.0], game_3::main::PLAYER_1_STAND, game_3::main::SIZE))
             .build();
 
         let selected = planner.mut_world()
             .create_now()
-            .with(Transform::new(Vector3::new(0.0,
-                                              0.0,
-                                              0.0),
-                                 Euler::new(Rad(0.0),
-                                            Rad(0.0),
-                                            Rad(0.0)),
-                                 Vector3::new(1.0,
-                                              1.0,
-                                              1.0)))
+            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0), Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)), Vector3::new(1.0, 1.0, 1.0)))
             .with(main_render.clone())
-            .with(RenderData::new(game_6::layers::GUI,
-                                  game_6::main::DEFAULT_TINT.clone(),
-                                  game_6::main::BOX,
-                                  game_6::main::SIZE))
-            .with(Gui::new(None,
-                           None,
-                           None,
-                           None))
+            .with(RenderData::new(game_6::layers::GUI, game_6::main::DEFAULT_TINT.clone(), game_6::main::BOX, game_6::main::SIZE))
+            .with(Gui::new(None, None, None, None))
             .build();
 
 
         let (score_to_feeder_front_channel, score_to_feeder_back_channel) = two_way_channel();
 
-        planner.add_system(ScoreSystem::new(score_to_feeder_front_channel),
-                           "score",
-                           60);
+        planner.add_system(ScoreSystem::new(score_to_feeder_front_channel), "score", 60);
 
         let (feeder_to_ai_front_channel, feeder_to_ai_back_channel) = two_way_channel();
 
         planner.add_system(FeederSystem::new(feeder_to_ai_front_channel,
                                              score_to_feeder_back_channel,
-                                             (|player, score_1, score_2| {
+                                             (|player, _score_1, _score_2| {
                                                  match player {
                                                      Player::One => vec![(Player::One, 0), (Player::Two, 0)],
                                                      Player::Two => vec![(Player::One, 0), (Player::Two, 0)],
                                                  }
                                              }),
-                                             (|score_1, score_2| vec![(Player::One, 0), (Player::Two, 0)])),
+                                             (|_score_1, _score_2| vec![(Player::One, 0), (Player::Two, 0)])),
                            "feeder",
                            50);
 
@@ -194,20 +131,15 @@ fn main() {
                                          -1.0,
                                          1.0,
                                          Box::new(|| {
-            if thread_rng().gen_range(0,
-                                      20) == 0 {
-                thread_rng().choose(vec![-1.0, 1.0].as_slice()).unwrap_or_else(|| panic!("Choose was none")) *
-                thread_rng().gen_range(0.5,
-                                       2.0)
+            if thread_rng().gen_range(0, 20) == 0 {
+                thread_rng().choose(vec![-1.0, 1.0].as_slice()).unwrap_or_else(|| panic!("Choose was none")) * thread_rng().gen_range(0.5, 2.0)
             } else {
                 1.0
             }
         }),
                                          Box::new(|| {
-            if thread_rng().gen_range(0,
-                                      20) == 0 {
-                thread_rng().gen_range(-1.0,
-                                       1.0)
+            if thread_rng().gen_range(0, 20) == 0 {
+                thread_rng().gen_range(-1.0, 1.0)
             } else {
                 0.0
             }
@@ -226,91 +158,49 @@ fn main() {
                            "control",
                            30);
 
-        planner.add_system(GuiSystem::new(selected,
-                                          control_to_gui_back_channel),
-                           "gui",
-                           25);
+        planner.add_system(GuiSystem::new(selected, control_to_gui_back_channel), "gui", 25);
 
-        planner.add_system(PlayerSystem::new(control_to_player_back_channel,
-                                             5.0,
-                                             (|me, run_arg| run_arg.fetch(|_| {}))),
-                           "player",
-                           20);
+        planner.add_system(PlayerSystem::new(control_to_player_back_channel, 5.0, (|me, run_arg| player_system::basic_all_dir(me, run_arg))), "player", 20);
 
-        planner.add_system(MovingSystem::new(),
-                           "moving",
-                           15);
+        planner.add_system(MovingSystem::new(), "moving", 15);
     }),
                 Box::new(|planner, back_event_clump| {
         planner.mut_world()
             .create_now()
-            .with(CompMoving::new(Vector3::new(0.0,
-                                               0.0,
-                                               0.0)))
+            .with(CompMoving::new(Vector3::new(0.0, 0.0, 0.0)))
             .with(CompPlayer::new(Player::One))
-            .with(Transform::new(Vector3::new(0.0,
-                                              0.0,
-                                              0.0),
-                                 Euler::new(Rad(0.0),
-                                            Rad(0.0),
-                                            Rad(0.0)),
-                                 Vector3::new(1.0,
-                                              1.0,
-                                              1.0)))
+            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0), Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)), Vector3::new(1.0, 1.0, 1.0)))
             .build();
 
         planner.mut_world()
             .create_now()
-            .with(CompMoving::new(Vector3::new(0.0,
-                                               0.0,
-                                               0.0)))
+            .with(CompMoving::new(Vector3::new(0.0, 0.0, 0.0)))
             .with(CompPlayer::new(Player::Two))
-            .with(Transform::new(Vector3::new(0.0,
-                                              0.0,
-                                              0.0),
-                                 Euler::new(Rad(0.0),
-                                            Rad(0.0),
-                                            Rad(0.0)),
-                                 Vector3::new(1.0,
-                                              1.0,
-                                              1.0)))
+            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0), Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)), Vector3::new(1.0, 1.0, 1.0)))
             .build();
 
         let selected = planner.mut_world()
             .create_now()
-            .with(Transform::new(Vector3::new(0.0,
-                                              0.0,
-                                              0.0),
-                                 Euler::new(Rad(0.0),
-                                            Rad(0.0),
-                                            Rad(0.0)),
-                                 Vector3::new(1.0,
-                                              1.0,
-                                              1.0)))
-            .with(Gui::new(None,
-                           None,
-                           None,
-                           None))
+            .with(Transform::new(Vector3::new(0.0, 0.0, 0.0), Euler::new(Rad(0.0), Rad(0.0), Rad(0.0)), Vector3::new(1.0, 1.0, 1.0)))
+            .with(Gui::new(None, None, None, None))
             .build();
 
 
         let (score_to_feeder_front_channel, score_to_feeder_back_channel) = two_way_channel();
 
-        planner.add_system(ScoreSystem::new(score_to_feeder_front_channel),
-                           "score",
-                           60);
+        planner.add_system(ScoreSystem::new(score_to_feeder_front_channel), "score", 60);
 
         let (feeder_to_ai_front_channel, feeder_to_ai_back_channel) = two_way_channel();
 
         planner.add_system(FeederSystem::new(feeder_to_ai_front_channel,
                                              score_to_feeder_back_channel,
-                                             (|player, score_1, score_2| {
+                                             (|player, _score_1, _score_2| {
                                                  match player {
                                                      Player::One => vec![(Player::One, 0), (Player::Two, 0)],
                                                      Player::Two => vec![(Player::One, 0), (Player::Two, 0)],
                                                  }
                                              }),
-                                             (|score_1, score_2| vec![(Player::One, 0), (Player::Two, 0)])),
+                                             (|_score_1, _score_2| vec![(Player::One, 0), (Player::Two, 0)])),
                            "feeder",
                            50);
 
@@ -328,20 +218,15 @@ fn main() {
                                          -1.0,
                                          1.0,
                                          Box::new(|| {
-            if thread_rng().gen_range(0,
-                                      20) == 0 {
-                thread_rng().choose(vec![-1.0, 1.0].as_slice()).unwrap_or_else(|| panic!("Choose was none")) *
-                thread_rng().gen_range(0.5,
-                                       2.0)
+            if thread_rng().gen_range(0, 20) == 0 {
+                thread_rng().choose(vec![-1.0, 1.0].as_slice()).unwrap_or_else(|| panic!("Choose was none")) * thread_rng().gen_range(0.5, 2.0)
             } else {
                 1.0
             }
         }),
                                          Box::new(|| {
-            if thread_rng().gen_range(0,
-                                      20) == 0 {
-                thread_rng().gen_range(-1.0,
-                                       1.0)
+            if thread_rng().gen_range(0, 20) == 0 {
+                thread_rng().gen_range(-1.0, 1.0)
             } else {
                 0.0
             }
@@ -360,19 +245,10 @@ fn main() {
                            "control",
                            30);
 
-        planner.add_system(GuiSystem::new(selected,
-                                          control_to_gui_back_channel),
-                           "gui",
-                           25);
+        planner.add_system(GuiSystem::new(selected, control_to_gui_back_channel), "gui", 25);
 
-        planner.add_system(PlayerSystem::new(control_to_player_back_channel,
-                                             5.0,
-                                             (|me, run_arg| run_arg.fetch(|_| {}))),
-                           "player",
-                           20);
+        planner.add_system(PlayerSystem::new(control_to_player_back_channel, 5.0, (|me, run_arg| player_system::basic_all_dir(me, run_arg))), "player", 20);
 
-        planner.add_system(MovingSystem::new(),
-                           "moving",
-                           15);
+        planner.add_system(MovingSystem::new(), "moving", 15);
     }));
 }

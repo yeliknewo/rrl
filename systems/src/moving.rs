@@ -15,9 +15,7 @@ impl MovingSystem {
 }
 
 impl System<Delta> for MovingSystem {
-    fn run(&mut self,
-           args: RunArg,
-           delta_time: Delta) {
+    fn run(&mut self, args: RunArg, delta_time: Delta) {
         let (mut transforms, mut movings) = args.fetch(|w| (w.write::<Transform>(), w.write::<CompMoving>()));
 
         for (mut transform, mut moving) in (&mut transforms, &mut movings).iter() {

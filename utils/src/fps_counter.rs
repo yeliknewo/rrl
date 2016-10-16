@@ -14,8 +14,7 @@ impl FpsCounter {
         }
     }
 
-    pub fn frame(&mut self,
-                 delta: Delta) {
+    pub fn frame(&mut self, delta: Delta) {
         self.frames += 1;
 
         self.current_delta += delta;
@@ -23,11 +22,9 @@ impl FpsCounter {
         while self.current_delta > 1.0 {
             self.current_delta -= 1.0;
             if self.frames < 55 {
-                warn!("FPS Low: {}",
-                      self.frames);
+                warn!("FPS Low: {}", self.frames);
             } else {
-                debug!("FPS: {}",
-                       self.frames);
+                debug!("FPS: {}", self.frames);
             }
             self.frames = 0;
         }

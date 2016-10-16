@@ -10,12 +10,7 @@ pub struct OrthographicHelper {
 }
 
 impl OrthographicHelper {
-    pub fn new(aspect_ratio: GfxCoord,
-               left: GfxCoord,
-               right: GfxCoord,
-               near: GfxCoord,
-               far: GfxCoord)
-               -> OrthographicHelper {
+    pub fn new(aspect_ratio: GfxCoord, left: GfxCoord, right: GfxCoord, near: GfxCoord, far: GfxCoord) -> OrthographicHelper {
         let bottom = left * aspect_ratio;
         let top = right * aspect_ratio;
 

@@ -10,8 +10,7 @@ static FRAGMENT: &'static [u8] = include_bytes!("shaders/spritesheet_150_f.glsl"
 
 pub fn make_shaders() -> Shaders {
     debug!("Making Shaders");
-    Shaders::new_from_bytes(VERTEX,
-                            FRAGMENT)
+    Shaders::new_from_bytes(VERTEX, FRAGMENT)
 }
 
 gfx_defines! {
@@ -49,9 +48,7 @@ gfx_defines! {
 }
 
 impl Vertex {
-    pub fn new(pos: [f32; 3],
-               uv: [f32; 2])
-               -> Vertex {
+    pub fn new(pos: [f32; 3], uv: [f32; 2]) -> Vertex {
         Vertex {
             pos: pos,
             uv: uv,
@@ -66,10 +63,7 @@ pub struct Bundle {
 }
 
 impl Bundle {
-    pub fn new(slice: Slice<GlResources>,
-               pso: PipelineState<GlResources, pipe::Meta>,
-               data: pipe::Data<GlResources>)
-               -> Bundle {
+    pub fn new(slice: Slice<GlResources>, pso: PipelineState<GlResources, pipe::Meta>, data: pipe::Data<GlResources>) -> Bundle {
         Bundle {
             slice: slice,
             pso: pso,
@@ -85,11 +79,8 @@ impl Bundle {
         &mut self.data
     }
 
-    pub fn encode(&self,
-                  encoder: &mut GlEncoder) {
-        encoder.draw(&self.slice,
-                     &self.pso,
-                     &self.data);
+    pub fn encode(&self, encoder: &mut GlEncoder) {
+        encoder.draw(&self.slice, &self.pso, &self.data);
     }
 }
 
@@ -101,10 +92,7 @@ pub struct Packet {
 }
 
 impl Packet {
-    pub fn new(vertices: Vec<Vertex>,
-               indices: Vec<Index>,
-               rasterizer: Rasterizer)
-               -> Packet {
+    pub fn new(vertices: Vec<Vertex>, indices: Vec<Index>, rasterizer: Rasterizer) -> Packet {
         Packet {
             vertices: vertices,
             indices: indices,

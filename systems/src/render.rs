@@ -18,10 +18,7 @@ pub struct RenderSystem {
 }
 
 impl RenderSystem {
-    pub fn new(back_channel: BackChannel<MainToRender, MainFromRender>,
-               out_color: OutColor,
-               out_depth: OutDepth)
-               -> RenderSystem {
+    pub fn new(back_channel: BackChannel<MainToRender, MainFromRender>, out_color: OutColor, out_depth: OutDepth) -> RenderSystem {
         RenderSystem {
             back_channel: back_channel,
             out_color: out_color,
@@ -31,38 +28,19 @@ impl RenderSystem {
         }
     }
 
-    pub fn add_render(&mut self,
-                      factory: &mut GlFactory,
-                      packet: &Packet,
-                      texture: GlTexture)
-                      -> RenderId {
-        let shader_set = factory.create_shader_set(self.shaders.get_vertex_shader(),
-                               self.shaders.get_fragment_shader())
-            .unwrap_or_else(|err| {
-                panic!("Create Shader Set Error: {:?}",
-                       err)
-            });
+    pub fn add_render(&mut self, factory: &mut GlFactory, packet: &Packet, texture: GlTexture) -> RenderId {
+        let shader_set = factory.create_shader_set(self.shaders.get_vertex_shader(), self.shaders.get_fragment_shader())
+            .unwrap_or_else(|err| panic!("Create Shader Set Error: {:?}", err));
 
         let program = factory.create_program(&shader_set)
-            .unwrap_or_else(|err| {
-                panic!("Create Program Error: {:?}",
-                       err)
-            });
+            .unwrap_or_else(|err| panic!("Create Program Error: {:?}", err));
 
-        let pso = factory.create_pipeline_from_program(&program,
-                                          Primitive::TriangleList,
-                                          packet.get_rasterizer(),
-                                          pipe::new())
-            .unwrap_or_else(|err| {
-                panic!("Create Pipeline from Program Error: {:?}",
-                       err)
-            });
+        let pso = factory.create_pipeline_from_program(&program, Primitive::TriangleList, packet.get_rasterizer(), pipe::new())
+            .unwrap_or_else(|err| panic!("Create Pipeline from Program Error: {:?}", err));
 
-        let sampler_info = SamplerInfo::new(FilterMethod::Scale,
-                                            WrapMode::Mirror);
+        let sampler_info = SamplerInfo::new(FilterMethod::Scale, WrapMode::Mirror);
 
-        let (vbuf, slice) = factory.create_vertex_buffer_with_slice(packet.get_vertices(),
-                                                                    packet.get_indices());
+        let (vbuf, slice) = factory.create_vertex_buffer_with_slice(packet.get_vertices(), packet.get_indices());
 
         let data = pipe::Data {
             vbuf: vbuf,
@@ -77,24 +55,18 @@ impl RenderSystem {
 
         let id = bundles.len();
 
-        bundles.push(Bundle::new(slice,
-                                 pso,
-                                 data));
+        bundles.push(Bundle::new(slice, pso, data));
 
         RenderId::new(id)
     }
 
-    fn render(&mut self,
-              arg: &RunArg,
-              mut encoder: GlEncoder) {
+    fn render(&mut self, arg: &RunArg, mut encoder: GlEncoder) {
         use specs::Join;
 
         let (render_ids, transforms, cameras, mut render_datas) = arg.fetch(|w| (w.read::<RenderId>(), w.read::<Transform>(), w.read::<Camera>(), w.write::<RenderData>()));
 
-        encoder.clear(&self.out_color,
-                      [0.0, 0.0, 0.0, 1.0]);
-        encoder.clear_depth(&self.out_depth,
-                            1.0);
+        encoder.clear(&self.out_color, [0.0, 0.0, 0.0, 1.0]);
+        encoder.clear_depth(&self.out_depth, 1.0);
 
         let (view, proj) = {
             let camera = {
@@ -148,13 +120,11 @@ impl RenderSystem {
             let b = self.bundles.get(data.0).unwrap_or_else(|| panic!("No Bundle found"));
 
             if let Some(texture_data) = data.2 {
-                encoder.update_constant_buffer(&b.get_data().texture_data,
-                                               &texture_data);
+                encoder.update_constant_buffer(&b.get_data().texture_data, &texture_data);
             }
 
             if let Some(projection_data) = data.3 {
-                encoder.update_constant_buffer(&b.get_data().projection_data,
-                                               &projection_data);
+                encoder.update_constant_buffer(&b.get_data().projection_data, &projection_data);
             }
 
             b.encode(&mut encoder);
@@ -163,14 +133,10 @@ impl RenderSystem {
         self.back_channel.send_from(MainFromRender::Encoder(encoder));
     }
 
-    fn process_event(&mut self,
-                     arg: &RunArg,
-                     event: MainToRender)
-                     -> bool {
+    fn process_event(&mut self, arg: &RunArg, event: MainToRender) -> bool {
         match event {
             MainToRender::Encoder(encoder) => {
-                self.render(arg,
-                            encoder);
+                self.render(arg, encoder);
                 false
             }
         }
@@ -178,9 +144,7 @@ impl RenderSystem {
 }
 
 impl System<Delta> for RenderSystem {
-    fn run(&mut self,
-           arg: RunArg,
-           _: Delta) {
+    fn run(&mut self, arg: RunArg, _: Delta) {
         let mut event = self.back_channel.try_recv_to();
         while self.process_event(&arg,
                                  match event {

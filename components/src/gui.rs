@@ -9,11 +9,7 @@ pub struct Gui {
 }
 
 impl Gui {
-    pub fn new(left: Option<Entity>,
-               right: Option<Entity>,
-               up: Option<Entity>,
-               down: Option<Entity>)
-               -> Gui {
+    pub fn new(left: Option<Entity>, right: Option<Entity>, up: Option<Entity>, down: Option<Entity>) -> Gui {
         Gui {
             left: left,
             right: right,

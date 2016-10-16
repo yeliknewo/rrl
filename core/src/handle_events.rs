@@ -7,9 +7,7 @@ pub mod glutin {
     use graphics::rl_glutin::{Extras, Window};
 
     #[allow(unused_variables)]
-    pub fn handle_events(gfx_window: &mut GfxWindow<Window, Extras>,
-                         front_event_clump: &mut FrontEventClump)
-                         -> bool {
+    pub fn handle_events(gfx_window: &mut GfxWindow<Window, Extras>, front_event_clump: &mut FrontEventClump) -> bool {
 
         while let Some(event) = gfx_window.get_mut_window().poll_events().next() {
             match event {
@@ -41,9 +39,7 @@ pub mod sdl2 {
     use utils::Player;
 
     #[allow(unused_variables)]
-    pub fn handle_events(gfx_window: &mut GfxWindow<Window, Extras>,
-                         front_event_clump: &mut FrontEventClump)
-                         -> bool {
+    pub fn handle_events(gfx_window: &mut GfxWindow<Window, Extras>, front_event_clump: &mut FrontEventClump) -> bool {
         let mut event_pump = gfx_window.get_mut_extras().1.take().unwrap_or_else(|| panic!("Event Pump was None"));
         let game_controller = gfx_window.get_mut_extras()
             .2
@@ -70,26 +66,22 @@ pub mod sdl2 {
                             Some(Keycode::Up) => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
-                                    .send_to(MainToControl::Up(1.0,
-                                                               Player::One));
+                                    .send_to(MainToControl::Up(1.0, Player::One));
                             }
                             Some(Keycode::Down) => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
-                                    .send_to(MainToControl::Down(1.0,
-                                                                 Player::One));
+                                    .send_to(MainToControl::Down(1.0, Player::One));
                             }
                             Some(Keycode::Left) => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
-                                    .send_to(MainToControl::Left(1.0,
-                                                                 Player::One));
+                                    .send_to(MainToControl::Left(1.0, Player::One));
                             }
                             Some(Keycode::Right) => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
-                                    .send_to(MainToControl::Right(1.0,
-                                                                  Player::One));
+                                    .send_to(MainToControl::Right(1.0, Player::One));
                             }
                             _ => {}
                         }
@@ -102,26 +94,22 @@ pub mod sdl2 {
                             Some(Keycode::Up) => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
-                                    .send_to(MainToControl::Up(0.0,
-                                                               Player::One));
+                                    .send_to(MainToControl::Up(0.0, Player::One));
                             }
                             Some(Keycode::Down) => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
-                                    .send_to(MainToControl::Down(0.0,
-                                                                 Player::One));
+                                    .send_to(MainToControl::Down(0.0, Player::One));
                             }
                             Some(Keycode::Left) => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
-                                    .send_to(MainToControl::Left(0.0,
-                                                                 Player::One));
+                                    .send_to(MainToControl::Left(0.0, Player::One));
                             }
                             Some(Keycode::Right) => {
                                 front_event_clump.get_mut_control()
                                     .unwrap_or_else(|| panic!("Control was none"))
-                                    .send_to(MainToControl::Right(0.0,
-                                                                  Player::One));
+                                    .send_to(MainToControl::Right(0.0, Player::One));
                             }
                             _ => {}
                         }
@@ -272,8 +260,7 @@ pub mod sdl2 {
                         }
                     }
                     Event::ControllerDeviceAdded { timestamp, which } => {
-                        debug!("Added, Which: {:?}",
-                               which);
+                        debug!("Added, Which: {:?}", which);
                         if let Some(player) = Player::map_number(which) {
                             controllers.insert(which,
                                                (game_controller.open(which as u32)

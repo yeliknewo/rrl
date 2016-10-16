@@ -22,27 +22,11 @@ pub enum ControlToGui<W> {
 impl<W> From<ControlToPlayer<W>> for ControlToGui<W> {
     fn from(other: ControlToPlayer<W>) -> ControlToGui<W> {
         match other {
-            ControlToPlayer::Up(amount, player) => {
-                ControlToGui::Up(amount,
-                                 player)
-            }
-            ControlToPlayer::Down(amount, player) => {
-                ControlToGui::Down(amount,
-                                   player)
-            }
-            ControlToPlayer::Left(amount, player) => {
-                ControlToGui::Left(amount,
-                                   player)
-            }
-            ControlToPlayer::Right(amount, player) => {
-                ControlToGui::Right(amount,
-                                    player)
-            }
-            ControlToPlayer::Joy(x, y, player) => {
-                ControlToGui::Joy(x,
-                                  y,
-                                  player)
-            }
+            ControlToPlayer::Up(amount, player) => ControlToGui::Up(amount, player),
+            ControlToPlayer::Down(amount, player) => ControlToGui::Down(amount, player),
+            ControlToPlayer::Left(amount, player) => ControlToGui::Left(amount, player),
+            ControlToPlayer::Right(amount, player) => ControlToGui::Right(amount, player),
+            ControlToPlayer::Joy(x, y, player) => ControlToGui::Joy(x, y, player),
             ControlToPlayer::A(player) => ControlToGui::A(player),
             ControlToPlayer::B(player) => ControlToGui::B(player),
             ControlToPlayer::X(player) => ControlToGui::X(player),
@@ -58,32 +42,12 @@ impl<W> From<ControlToPlayer<W>> for ControlToGui<W> {
 impl<W> From<MainToControl<W>> for ControlToGui<W> {
     fn from(other: MainToControl<W>) -> ControlToGui<W> {
         match other {
-            MainToControl::Up(amount, player) => {
-                ControlToGui::Up(amount,
-                                 player)
-            }
-            MainToControl::Down(amount, player) => {
-                ControlToGui::Down(amount,
-                                   player)
-            }
-            MainToControl::Left(amount, player) => {
-                ControlToGui::Left(amount,
-                                   player)
-            }
-            MainToControl::Right(amount, player) => {
-                ControlToGui::Right(amount,
-                                    player)
-            }
-            MainToControl::JoyX(x, player) => {
-                ControlToGui::Joy(Some(x),
-                                  None,
-                                  player)
-            }
-            MainToControl::JoyY(y, player) => {
-                ControlToGui::Joy(None,
-                                  Some(y),
-                                  player)
-            }
+            MainToControl::Up(amount, player) => ControlToGui::Up(amount, player),
+            MainToControl::Down(amount, player) => ControlToGui::Down(amount, player),
+            MainToControl::Left(amount, player) => ControlToGui::Left(amount, player),
+            MainToControl::Right(amount, player) => ControlToGui::Right(amount, player),
+            MainToControl::JoyX(x, player) => ControlToGui::Joy(Some(x), None, player),
+            MainToControl::JoyY(y, player) => ControlToGui::Joy(None, Some(y), player),
             MainToControl::A(player) => ControlToGui::A(player),
             MainToControl::B(player) => ControlToGui::B(player),
             MainToControl::X(player) => ControlToGui::X(player),

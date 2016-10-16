@@ -20,10 +20,7 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new_no_render(setup: SetupNoRender,
-                         mut back_event_clump: BackEventClump,
-                         fixed_delta: Option<f64>)
-                         -> Game {
+    pub fn new_no_render(setup: SetupNoRender, mut back_event_clump: BackEventClump, fixed_delta: Option<f64>) -> Game {
         let mut planner = {
             let mut world = World::new();
 
@@ -35,12 +32,10 @@ impl Game {
             world.register::<Transform>();
             world.register::<Gui>();
 
-            Planner::<Delta>::new(world,
-                                  8)
+            Planner::<Delta>::new(world, 8)
         };
 
-        setup(&mut planner,
-              &mut back_event_clump);
+        setup(&mut planner, &mut back_event_clump);
 
         // planner.mut_world()
         //     .create_now()
@@ -107,14 +102,7 @@ impl Game {
     }
 
     #[allow(dead_code)]
-    pub fn new(setup: Setup,
-               factory: &mut GlFactory,
-               mut back_event_clump: BackEventClump,
-               ortho: OrthographicHelper,
-               out_color: OutColor,
-               out_depth: OutDepth,
-               fixed_delta: Option<f64>)
-               -> Game {
+    pub fn new(setup: Setup, factory: &mut GlFactory, mut back_event_clump: BackEventClump, ortho: OrthographicHelper, out_color: OutColor, out_depth: OutDepth, fixed_delta: Option<f64>) -> Game {
         let mut planner = {
             let mut world = World::new();
 
@@ -126,8 +114,7 @@ impl Game {
             world.register::<Transform>();
             world.register::<Gui>();
 
-            Planner::<Delta>::new(world,
-                                  8)
+            Planner::<Delta>::new(world, 8)
         };
 
         let mut renderer = RenderSystem::new(back_event_clump.take_render()
@@ -135,11 +122,7 @@ impl Game {
                                              out_color,
                                              out_depth);
 
-        setup(&mut planner,
-              &mut back_event_clump,
-              &mut renderer,
-              factory,
-              ortho);
+        setup(&mut planner, &mut back_event_clump, &mut renderer, factory, ortho);
 
         // planner.mut_world()
         //     .create_now()
@@ -224,9 +207,7 @@ impl Game {
         //
         // planner.add_system(MovingSystem::new(), "moving", 15);
         //
-        planner.add_system(renderer,
-                           "renderer",
-                           10);
+        planner.add_system(renderer, "renderer", 10);
 
         Game {
             planner: planner,

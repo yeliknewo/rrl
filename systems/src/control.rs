@@ -48,99 +48,43 @@ impl ControlSystem {
         }
     }
 
-    fn process_main_event(&mut self,
-                          event: MainToControl<f64>) {
+    fn process_main_event(&mut self, event: MainToControl<f64>) {
         match event {
-            MainToControl::JoyX(x, player) => {
-                self.handle_joy(Some(x),
-                                None,
-                                player)
-            }
-            MainToControl::JoyY(y, player) => {
-                self.handle_joy(None,
-                                Some(y),
-                                player)
-            }
+            MainToControl::JoyX(x, player) => self.handle_joy(Some(x), None, player),
+            MainToControl::JoyY(y, player) => self.handle_joy(None, Some(y), player),
             event => self.send_repeat(ControlToPlayer::from(event)),
         }
     }
 
-    fn handle_joy(&mut self,
-                  x_opt: Option<f64>,
-                  y_opt: Option<f64>,
-                  player: Player) {
+    fn handle_joy(&mut self, x_opt: Option<f64>, y_opt: Option<f64>, player: Player) {
         // TODO Implement This Function
 
-        self.send_repeat(ControlToPlayer::Joy(x_opt,
-                                              y_opt,
-                                              player));
+        self.send_repeat(ControlToPlayer::Joy(x_opt, y_opt, player));
     }
 
-    fn process_ai_event(&mut self,
-                        event: AiToControl<f64>) {
+    fn process_ai_event(&mut self, event: AiToControl<f64>) {
         self.send_once(ControlToPlayer::from(event));
     }
 
-    fn send_repeat(&mut self,
-                   event: ControlToPlayer<f64>) {
+    fn send_repeat(&mut self, event: ControlToPlayer<f64>) {
         match &event {
-            &ControlToPlayer::Up(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Vertical(player),
-                                       event)
-            }
-            &ControlToPlayer::Down(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Vertical(player),
-                                       event)
-            }
-            &ControlToPlayer::Right(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Horizontal(player),
-                                       event)
-            }
-            &ControlToPlayer::Left(_, player) => {
-                self.repeat_map.insert(RepeatEvent::Horizontal(player),
-                                       event)
-            }
-            &ControlToPlayer::Joy(_, _, player) => {
-                self.repeat_map.insert(RepeatEvent::Joy(player),
-                                       event)
-            }
-            &ControlToPlayer::A(player) => {
-                self.repeat_map.insert(RepeatEvent::A(player),
-                                       event)
-            }
-            &ControlToPlayer::B(player) => {
-                self.repeat_map.insert(RepeatEvent::B(player),
-                                       event)
-            }
-            &ControlToPlayer::X(player) => {
-                self.repeat_map.insert(RepeatEvent::X(player),
-                                       event)
-            }
-            &ControlToPlayer::Y(player) => {
-                self.repeat_map.insert(RepeatEvent::Y(player),
-                                       event)
-            }
-            &ControlToPlayer::L1(player) => {
-                self.repeat_map.insert(RepeatEvent::L1(player),
-                                       event)
-            }
-            &ControlToPlayer::L2(player) => {
-                self.repeat_map.insert(RepeatEvent::L2(player),
-                                       event)
-            }
-            &ControlToPlayer::R1(player) => {
-                self.repeat_map.insert(RepeatEvent::R1(player),
-                                       event)
-            }
-            &ControlToPlayer::R2(player) => {
-                self.repeat_map.insert(RepeatEvent::R2(player),
-                                       event)
-            }
+            &ControlToPlayer::Up(_, player) => self.repeat_map.insert(RepeatEvent::Vertical(player), event),
+            &ControlToPlayer::Down(_, player) => self.repeat_map.insert(RepeatEvent::Vertical(player), event),
+            &ControlToPlayer::Right(_, player) => self.repeat_map.insert(RepeatEvent::Horizontal(player), event),
+            &ControlToPlayer::Left(_, player) => self.repeat_map.insert(RepeatEvent::Horizontal(player), event),
+            &ControlToPlayer::Joy(_, _, player) => self.repeat_map.insert(RepeatEvent::Joy(player), event),
+            &ControlToPlayer::A(player) => self.repeat_map.insert(RepeatEvent::A(player), event),
+            &ControlToPlayer::B(player) => self.repeat_map.insert(RepeatEvent::B(player), event),
+            &ControlToPlayer::X(player) => self.repeat_map.insert(RepeatEvent::X(player), event),
+            &ControlToPlayer::Y(player) => self.repeat_map.insert(RepeatEvent::Y(player), event),
+            &ControlToPlayer::L1(player) => self.repeat_map.insert(RepeatEvent::L1(player), event),
+            &ControlToPlayer::L2(player) => self.repeat_map.insert(RepeatEvent::L2(player), event),
+            &ControlToPlayer::R1(player) => self.repeat_map.insert(RepeatEvent::R1(player), event),
+            &ControlToPlayer::R2(player) => self.repeat_map.insert(RepeatEvent::R2(player), event),
         };
     }
 
-    fn send_once(&mut self,
-                 event: ControlToPlayer<f64>) {
+    fn send_once(&mut self, event: ControlToPlayer<f64>) {
         self.player_front_channel
             .as_mut()
             .unwrap_or_else(|| panic!("Player Front Channel was none"))
@@ -164,9 +108,7 @@ impl ControlSystem {
 }
 
 impl System<Delta> for ControlSystem {
-    fn run(&mut self,
-           arg: RunArg,
-           delta_time: Delta) {
+    fn run(&mut self, arg: RunArg, delta_time: Delta) {
         self.time += delta_time;
 
         if self.time >= 300.0 {

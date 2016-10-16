@@ -50,24 +50,11 @@ struct BrainClump<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive +
 }
 
 impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable> BrainClump<S, W> {
-    fn new(network_count: usize,
-           input_size: S,
-           network_size: Vec<S>,
-           min_weight: W,
-           max_weight: W,
-           min_bias: W,
-           max_bias: W)
-           -> BrainClump<S, W> {
+    fn new(network_count: usize, input_size: S, network_size: Vec<S>, min_weight: W, max_weight: W, min_bias: W, max_bias: W) -> BrainClump<S, W> {
         let mut networks = HashMap::new();
 
         for index in 0..network_count {
-            networks.insert(index,
-                            NeuralNetwork::new_random(input_size.clone(),
-                                                      &network_size,
-                                                      min_weight,
-                                                      max_weight,
-                                                      min_bias,
-                                                      max_bias));
+            networks.insert(index, NeuralNetwork::new_random(input_size.clone(), &network_size, min_weight, max_weight, min_bias, max_bias));
         }
 
         BrainClump {
@@ -108,13 +95,9 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
     }
 
     fn get_load_path(name: &str) -> Option<PathBuf> {
-        let mut saves = Search::ParentsThenKids(5,
-                                                5)
+        let mut saves = Search::ParentsThenKids(5, 5)
             .for_folder("networks")
-            .unwrap_or_else(|err| {
-                panic!("Did you forget to make a networks folder?: {:?}",
-                       err)
-            });
+            .unwrap_or_else(|err| panic!("Did you forget to make a networks folder?: {:?}", err));
 
         let mut filename = String::new();
 
@@ -131,13 +114,9 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
     }
 
     fn get_save_path(name: &str) -> Option<PathBuf> {
-        let mut saves = Search::ParentsThenKids(5,
-                                                5)
+        let mut saves = Search::ParentsThenKids(5, 5)
             .for_folder("networks")
-            .unwrap_or_else(|err| {
-                panic!("{:?}",
-                       err)
-            });
+            .unwrap_or_else(|err| panic!("{:?}", err));
 
         let mut filename = String::new();
 
@@ -153,8 +132,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
         Some(saves)
     }
 
-    fn save(&self,
-            brain: Brain) {
+    fn save(&self, brain: Brain) {
         let save_path = match BrainClump::<S, W>::get_save_path(Brain::brain_to_name(brain)) {
             Some(path) => path,
             None => return,
@@ -163,27 +141,19 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
         let encoded = match json::encode(&self) {
             Ok(encoded) => encoded,
             Err(err) => {
-                error!("Unable to Encode to save: {:?}",
-                       err);
+                error!("Unable to Encode to save: {:?}", err);
                 return;
             }
         };
 
-        let f = File::create(save_path).unwrap_or_else(|err| {
-            panic!("{:?}",
-                   err)
-        });
+        let f = File::create(save_path).unwrap_or_else(|err| panic!("{:?}", err));
 
         let mut writer = BufWriter::new(f);
 
-        writer.write(encoded.as_bytes()).unwrap_or_else(|err| {
-            panic!("{:?}",
-                   err)
-        });
+        writer.write(encoded.as_bytes()).unwrap_or_else(|err| panic!("{:?}", err));
     }
 
-    fn add_player(&mut self,
-                  player: Player) {
+    fn add_player(&mut self, player: Player) {
         self.players.push(player);
         self.players.sort();
         self.players.dedup();
@@ -197,8 +167,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
         }
     }
 
-    fn map_next_index(&mut self,
-                      player: Player) {
+    fn map_next_index(&mut self, player: Player) {
         let indices_total = self.trainer.get_next_generation().len();
         let mut indices_used: Vec<usize> = self.player_mapper.iter().map(|value| *value.1).collect();
 
@@ -217,17 +186,13 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
             index_opt.unwrap_or_else(|| panic!("Tried to use indices after all were used"))
         };
 
-        self.player_mapper.insert(player,
-                                  index);
+        self.player_mapper.insert(player, index);
         // warn!("Mapped Player: {:?} to Index: {:?}", player, index);
         self.used_indices.push(index);
         self.used_indices.sort();
     }
 
-    fn think(&mut self,
-             player: Player,
-             inputs: &mut Vec<W>)
-             -> AiToControl<W> {
+    fn think(&mut self, player: Player, inputs: &mut Vec<W>) -> AiToControl<W> {
         // let dot1 = dot(vec[0].1, vec[1].1);
         // let dot2 = dot(vec[1].1, vec[0].1);
         //
@@ -254,9 +219,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
 
         let atan = y.atan2(x);
 
-        AiToControl::Joy(atan.cos(),
-                         atan.sin(),
-                         player)
+        AiToControl::Joy(atan.cos(), atan.sin(), player)
 
         // for info in inputs {
         //     let index = *self.player_mapper.get(&player).unwrap_or_else(|| panic!("Player mapper get info.0 was none"));
@@ -278,34 +241,27 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
         // output
     }
 
-    fn prep_reward(&mut self,
-                   reward: (Player, S)) {
+    fn prep_reward(&mut self, reward: (Player, S)) {
         let index = *self.player_mapper
             .get(&reward.0)
             .unwrap_or_else(|| panic!("Player Mapper get Value.0 was None"));
         self.rewards.push((index, reward.1));
     }
 
-    fn reward<F1: Fn() -> W, F2: Fn() -> W>(&mut self,
-                                            reward: (Player, S),
-                                            mutation_mult_picker: &Box<F1>,
-                                            mutation_add_picker: &Box<F2>) {
+    fn reward<F1: Fn() -> W, F2: Fn() -> W>(&mut self, reward: (Player, S), mutation_mult_picker: &Box<F1>, mutation_add_picker: &Box<F2>) {
         // warn!("Finished Game");
         self.prep_reward(reward);
 
         // warn!("Used Indices: {:?}, Next Gen Len: {:?}", self.used_indices.len(), self.trainer.get_next_generation().len());
         if self.used_indices.len() == self.trainer.get_next_generation().len() {
-            self.train(mutation_mult_picker,
-                       mutation_add_picker);
+            self.train(mutation_mult_picker, mutation_add_picker);
         }
         self.player_mapper.clear();
         // self.print_unused_indices();
         self.prep_player_indices();
     }
 
-    fn train<F1: Fn() -> W, F2: Fn() -> W>(&mut self,
-                                           mutation_mult_picker: &Box<F1>,
-                                           mutation_add_picker: &Box<F2>) {
+    fn train<F1: Fn() -> W, F2: Fn() -> W>(&mut self, mutation_mult_picker: &Box<F1>, mutation_add_picker: &Box<F2>) {
         debug!("Training Next Generation");
         let mut rewards: HashMap<usize, S> = HashMap::new();
 
@@ -314,23 +270,17 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
                 if rewards.contains_key(&reward.0) {
                     rewards.get(&reward.0).unwrap().clone()
                 } else {
-                    rewards.insert(reward.0,
-                                   S::zero());
+                    rewards.insert(reward.0, S::zero());
                     rewards.get(&reward.0).unwrap().clone()
                 }
             };
 
-            rewards.insert(reward.0,
-                           sum + reward.1);
+            rewards.insert(reward.0, sum + reward.1);
         }
         for reward in &rewards {
-            debug!("Index: {:?}, Fitness: {:?}",
-                   reward.0,
-                   reward.1);
+            debug!("Index: {:?}, Fitness: {:?}", reward.0, reward.1);
         }
-        self.trainer.train(rewards,
-                           mutation_mult_picker,
-                           mutation_add_picker);
+        self.trainer.train(rewards, mutation_mult_picker, mutation_add_picker);
         // warn!("Clearing Used Indices");
         self.used_indices.clear();
     }
@@ -366,27 +316,15 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
 
         brain_type.insert(Brain::Chase,
                           BrainClump::<S, W>::load(Brain::Chase).unwrap_or_else(|| {
-            warn!("Load Brain Chase Failed");
-            BrainClump::new(network_count,
-                            input_size.clone(),
-                            network_size_chase,
-                            min_weight,
-                            max_weight,
-                            min_bias,
-                            max_bias)
-        }));
+                              warn!("Load Brain Chase Failed");
+                              BrainClump::new(network_count, input_size.clone(), network_size_chase, min_weight, max_weight, min_bias, max_bias)
+                          }));
 
         brain_type.insert(Brain::Flee,
                           BrainClump::load(Brain::Flee).unwrap_or_else(|| {
-            warn!("Load Brain Flee Failed");
-            BrainClump::new(network_count,
-                            input_size.clone(),
-                            network_size_flee,
-                            min_weight,
-                            max_weight,
-                            min_bias,
-                            max_bias)
-        }));
+                              warn!("Load Brain Flee Failed");
+                              BrainClump::new(network_count, input_size.clone(), network_size_flee, min_weight, max_weight, min_bias, max_bias)
+                          }));
 
         let mut system = AiSystem {
             main_back_channel: main_back_channel,
@@ -398,10 +336,9 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
             mutation_add_picker: mutation_add_picker,
         };
 
-        system.map_player_to_brain(Player::One,
-                                   Brain::Chase);
-        system.map_player_to_brain(Player::Two,
-                                   Brain::Flee);
+        // system.map_player_to_brain(Player::One,
+        //                            Brain::Chase);
+        system.map_player_to_brain(Player::Two, Brain::Flee);
 
         system.prep_player_indices();
 
@@ -414,19 +351,15 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
         }
     }
 
-    fn map_player_to_brain(&mut self,
-                           player: Player,
-                           brain: Brain) {
-        self.brain_mapper.insert(player,
-                                 brain);
+    fn map_player_to_brain(&mut self, player: Player, brain: Brain) {
+        self.brain_mapper.insert(player, brain);
         self.brain_type
             .get_mut(&brain)
             .unwrap_or_else(|| panic!("Brain had no type"))
             .add_player(player);
     }
 
-    fn process_event(&mut self,
-                     event: FeederToAi<S, W>) {
+    fn process_event(&mut self, event: FeederToAi<S, W>) {
         match event {
             FeederToAi::WorldState(player, mut vec) => {
                 let brain = match self.brain_mapper.get(&player) {
@@ -436,8 +369,7 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
                 let thought = self.brain_type
                     .get_mut(brain)
                     .unwrap_or_else(|| panic!("Brain had no type"))
-                    .think(player,
-                           &mut vec);
+                    .think(player, &mut vec);
                 self.control_front_channel.send_to(thought);
             }
             FeederToAi::Reward(vec) => {
@@ -461,9 +393,7 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
                     self.brain_type
                         .get_mut(brain)
                         .unwrap_or_else(|| panic!("Brain had no type"))
-                        .reward(reward.clone(),
-                                &self.mutation_mult_picker,
-                                &self.mutation_add_picker);
+                        .reward(reward.clone(), &self.mutation_mult_picker, &self.mutation_add_picker);
                 }
             }
         }

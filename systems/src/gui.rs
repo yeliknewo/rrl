@@ -11,18 +11,14 @@ pub struct GuiSystem {
 }
 
 impl GuiSystem {
-    pub fn new(selected: Entity,
-               control_back_channel: BackChannel<ControlToGui<f64>, ControlFromGui>)
-               -> GuiSystem {
+    pub fn new(selected: Entity, control_back_channel: BackChannel<ControlToGui<f64>, ControlFromGui>) -> GuiSystem {
         GuiSystem {
             selected: selected,
             control_back_channel: control_back_channel,
         }
     }
 
-    fn left_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self,
-                                                                                                                                           guis: &Storage<Gui, T1, T2>,
-                                                                                                                                           render_datas: &mut Storage<RenderData, T1, T3>) {
+    fn left_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self, guis: &Storage<Gui, T1, T2>, render_datas: &mut Storage<RenderData, T1, T3>) {
         let gui = guis.get(self.selected).unwrap_or_else(|| panic!("Selected had no gui"));
 
         if let &Some(left) = gui.get_left() {
@@ -32,9 +28,7 @@ impl GuiSystem {
         }
     }
 
-    fn right_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self,
-                                                                                                                                            guis: &Storage<Gui, T1, T2>,
-                                                                                                                                            render_datas: &mut Storage<RenderData, T1, T3>) {
+    fn right_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self, guis: &Storage<Gui, T1, T2>, render_datas: &mut Storage<RenderData, T1, T3>) {
         let gui = guis.get(self.selected).unwrap_or_else(|| panic!("Selected had no gui"));
 
         if let &Some(right) = gui.get_right() {
@@ -44,9 +38,7 @@ impl GuiSystem {
         }
     }
 
-    fn up_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self,
-                                                                                                                                         guis: &Storage<Gui, T1, T2>,
-                                                                                                                                         render_datas: &mut Storage<RenderData, T1, T3>) {
+    fn up_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self, guis: &Storage<Gui, T1, T2>, render_datas: &mut Storage<RenderData, T1, T3>) {
         let gui = guis.get(self.selected).unwrap_or_else(|| panic!("Selected had no gui"));
 
         if let &Some(up) = gui.get_up() {
@@ -56,9 +48,7 @@ impl GuiSystem {
         }
     }
 
-    fn down_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self,
-                                                                                                                                           guis: &Storage<Gui, T1, T2>,
-                                                                                                                                           render_datas: &mut Storage<RenderData, T1, T3>) {
+    fn down_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self, guis: &Storage<Gui, T1, T2>, render_datas: &mut Storage<RenderData, T1, T3>) {
         let gui = guis.get(self.selected).unwrap_or_else(|| panic!("Selected had no gui"));
 
         if let &Some(down) = gui.get_down() {
@@ -68,91 +58,63 @@ impl GuiSystem {
         }
     }
 
-    fn select_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self,
-                                                                                                                                             guis: &Storage<Gui, T1, T2>,
-                                                                                                                                             render_datas: &mut Storage<RenderData, T1, T3>) {
+    fn select_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self, guis: &Storage<Gui, T1, T2>, render_datas: &mut Storage<RenderData, T1, T3>) {
 
     }
 
-    fn cancel_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self,
-                                                                                                                                             guis: &Storage<Gui, T1, T2>,
-                                                                                                                                             render_datas: &mut Storage<RenderData, T1, T3>) {
+    fn cancel_event<T1: Deref<Target = Allocator>, T2: Deref<Target = MaskedStorage<Gui>>, T3: DerefMut<Target = MaskedStorage<RenderData>>>(&mut self, guis: &Storage<Gui, T1, T2>, render_datas: &mut Storage<RenderData, T1, T3>) {
 
     }
 }
 
 impl System<Delta> for GuiSystem {
-    fn run(&mut self,
-           arg: RunArg,
-           _: Delta) {
+    fn run(&mut self, arg: RunArg, _: Delta) {
         let (guis, mut render_datas) = arg.fetch(|w| (w.read::<Gui>(), w.write::<RenderData>()));
 
         while let Some(event) = self.control_back_channel.try_recv_to() {
             match event {
-                ControlToGui::Down(_amount, _player) => {
-                    self.down_event(&guis,
-                                    &mut render_datas)
-                }
-                ControlToGui::Up(_amount, _player) => {
-                    self.up_event(&guis,
-                                  &mut render_datas)
-                }
-                ControlToGui::Left(_amount, _player) => {
-                    self.left_event(&guis,
-                                    &mut render_datas)
-                }
-                ControlToGui::Right(_amount, _player) => {
-                    self.right_event(&guis,
-                                     &mut render_datas)
-                }
+                ControlToGui::Down(_amount, _player) => self.down_event(&guis, &mut render_datas),
+                ControlToGui::Up(_amount, _player) => self.up_event(&guis, &mut render_datas),
+                ControlToGui::Left(_amount, _player) => self.left_event(&guis, &mut render_datas),
+                ControlToGui::Right(_amount, _player) => self.right_event(&guis, &mut render_datas),
                 ControlToGui::Joy(x_opt, y_opt, _player) => {
                     if let Some(x) = x_opt {
                         if let Some(y) = y_opt {
                             if x.abs() > y.abs() {
                                 if x > 0.0 {
-                                    self.right_event(&guis,
-                                                     &mut render_datas);
+                                    self.right_event(&guis, &mut render_datas);
                                 } else {
-                                    self.left_event(&guis,
-                                                    &mut render_datas);
+                                    self.left_event(&guis, &mut render_datas);
                                 }
                             } else {
                                 if y > 0.0 {
-                                    self.up_event(&guis,
-                                                  &mut render_datas);
+                                    self.up_event(&guis, &mut render_datas);
                                 } else {
-                                    self.down_event(&guis,
-                                                    &mut render_datas);
+                                    self.down_event(&guis, &mut render_datas);
                                 }
                             }
                         } else {
                             if x > 0.0 {
-                                self.right_event(&guis,
-                                                 &mut render_datas);
+                                self.right_event(&guis, &mut render_datas);
                             } else {
-                                self.left_event(&guis,
-                                                &mut render_datas);
+                                self.left_event(&guis, &mut render_datas);
                             }
                         }
                     } else {
                         if let Some(y) = y_opt {
                             if y > 0.0 {
-                                self.up_event(&guis,
-                                              &mut render_datas);
+                                self.up_event(&guis, &mut render_datas);
                             } else {
-                                self.down_event(&guis,
-                                                &mut render_datas);
+                                self.down_event(&guis, &mut render_datas);
                             }
                         }
                     }
                 }
                 ControlToGui::A(_player) => {
-                    self.select_event(&guis,
-                                      &mut render_datas);
+                    self.select_event(&guis, &mut render_datas);
                 }
                 ControlToGui::B(_player) => {
-                    self.cancel_event(&guis,
-                                      &mut render_datas);
+                    self.cancel_event(&guis, &mut render_datas);
                 }
                 ControlToGui::X(_player) => {}
                 ControlToGui::Y(_player) => {}

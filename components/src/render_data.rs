@@ -13,11 +13,7 @@ pub struct RenderData {
 }
 
 impl RenderData {
-    pub fn new(layer: u8,
-               tint: [f32; 4],
-               spritesheet_rect: &'static [f32; 4],
-               spritesheet_size: &'static [f32; 2])
-               -> RenderData {
+    pub fn new(layer: u8, tint: [f32; 4], spritesheet_rect: &'static [f32; 4], spritesheet_size: &'static [f32; 2]) -> RenderData {
         RenderData {
             default_tint: tint.clone(),
             tint: tint,
@@ -30,40 +26,33 @@ impl RenderData {
         }
     }
 
-    pub fn set_layer(&mut self,
-                     layer: u8) {
+    pub fn set_layer(&mut self, layer: u8) {
         self.layer = layer;
         self.set_dirty();
     }
 
-    pub fn set_mirrors(&mut self,
-                       x: bool,
-                       y: bool) {
+    pub fn set_mirrors(&mut self, x: bool, y: bool) {
         self.mirror_x = x;
         self.mirror_y = y;
         self.set_dirty();
     }
 
-    pub fn set_mirror_x(&mut self,
-                        mirror: bool) {
+    pub fn set_mirror_x(&mut self, mirror: bool) {
         self.mirror_x = mirror;
         self.set_dirty();
     }
 
-    pub fn set_mirror_y(&mut self,
-                        mirror: bool) {
+    pub fn set_mirror_y(&mut self, mirror: bool) {
         self.mirror_y = mirror;
         self.set_dirty();
     }
 
-    pub fn set_spritesheet_rect(&mut self,
-                                spritesheet_rect: &'static [f32; 4]) {
+    pub fn set_spritesheet_rect(&mut self, spritesheet_rect: &'static [f32; 4]) {
         self.spritesheet_rect = spritesheet_rect;
         self.set_dirty();
     }
 
-    pub fn set_tint(&mut self,
-                    tint: [f32; 4]) {
+    pub fn set_tint(&mut self, tint: [f32; 4]) {
         self.tint = tint;
         self.set_dirty();
     }

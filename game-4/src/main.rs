@@ -9,10 +9,7 @@ use core::crates::utils::Opter;
 use std::str::FromStr;
 
 fn main() {
-    env_logger::init().unwrap_or_else(|err| {
-        panic!("Unable to Initate Env Logger: {}",
-               err)
-    });
+    env_logger::init().unwrap_or_else(|err| panic!("Unable to Initate Env Logger: {}", err));
 
     let opter = Opter::new();
 
@@ -36,16 +33,14 @@ fn main() {
 
     debug!("Getting Graphics");
 
-    start(delta_time,
-          g);
+    start(delta_time, g);
 
     debug!("Game exited Successfully");
 }
 
 #[cfg(feature = "g_glutin")]
 #[cfg(feature = "g_sdl2")]
-fn start(delta_time: Option<f64>,
-         string: Option<&String>) {
+fn start(delta_time: Option<f64>, string: Option<&String>) {
     match string {
         Some(g_string) => {
             if g_string.contains("glutin") {
@@ -62,8 +57,7 @@ fn start(delta_time: Option<f64>,
 
 #[cfg(feature = "g_glutin")]
 #[cfg(not(feature = "g_sdl2"))]
-fn start(delta_time: Option<f64>,
-         string: Option<&String>) {
+fn start(delta_time: Option<f64>, string: Option<&String>) {
     match string {
         Some(g_string) => {
             if g_string.contains("glutin") {
@@ -78,8 +72,7 @@ fn start(delta_time: Option<f64>,
 
 #[cfg(feature = "g_sdl2")]
 #[cfg(not(feature = "g_glutin"))]
-fn start(delta_time: Option<f64>,
-         string: Option<&String>) {
+fn start(delta_time: Option<f64>, string: Option<&String>) {
     match string {
         Some(g_string) => {
             if g_string.contains("sdl2") {
@@ -94,7 +87,6 @@ fn start(delta_time: Option<f64>,
 
 #[cfg(not(feature = "g_sdl2"))]
 #[cfg(not(feature = "g_glutin"))]
-fn start(delta_time: Option<f64>,
-         string: Option<&String>) {
+fn start(delta_time: Option<f64>, string: Option<&String>) {
     core::start_no_render(delta_time);
 }

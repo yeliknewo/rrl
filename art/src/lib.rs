@@ -31,9 +31,7 @@ pub fn make_square_render() -> Packet {
 
     let rasterizer = Rasterizer::new_fill();
 
-    Packet::new(vertices,
-                indices,
-                rasterizer)
+    Packet::new(vertices, indices, rasterizer)
 }
 
 pub type RenderType = u8;

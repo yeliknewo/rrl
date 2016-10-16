@@ -27,9 +27,7 @@ impl ScoreSystem {
 }
 
 impl System<Delta> for ScoreSystem {
-    fn run(&mut self,
-           args: RunArg,
-           delta_time: Delta) {
+    fn run(&mut self, args: RunArg, delta_time: Delta) {
         self.time += delta_time;
 
         let (players, mut transforms, mut movings) = args.fetch(|w| (w.read::<CompPlayer>(), w.write::<Transform>(), w.write::<CompMoving>()));
@@ -46,17 +44,14 @@ impl System<Delta> for ScoreSystem {
                     continue;
                 }
                 self.feeder_front_channel
-                    .send_to(ScoreToFeeder::Lose(player.get_player(),
-                                                 0.0,
-                                                 -150.0));
+                    .send_to(ScoreToFeeder::Lose(player.get_player(), 0.0, -150.0));
                 done = true;
                 break;
             }
         }
 
         if self.time > 30.0 {
-            self.feeder_front_channel.send_to(ScoreToFeeder::LoseBoth(-300.0,
-                                                                      -300.0));
+            self.feeder_front_channel.send_to(ScoreToFeeder::LoseBoth(-300.0, -300.0));
             done = true;
         }
 
@@ -64,20 +59,8 @@ impl System<Delta> for ScoreSystem {
             self.time = 0.0;
             for (player, mut transform, mut moving) in (&players, &mut transforms, &mut movings).iter() {
                 transform.set_pos(match player.get_player() {
-                    Player::One => {
-                        Vector3::new(thread_rng().gen_range(-9.0,
-                                                            9.0),
-                                     thread_rng().gen_range(-9.0,
-                                                            9.0),
-                                     0.0)
-                    }
-                    Player::Two => {
-                        Vector3::new(thread_rng().gen_range(-9.0,
-                                                            9.0),
-                                     thread_rng().gen_range(-9.0,
-                                                            9.0),
-                                     0.0)
-                    }
+                    Player::One => Vector3::new(thread_rng().gen_range(-9.0, 9.0), thread_rng().gen_range(-9.0, 9.0), 0.0),
+                    Player::Two => Vector3::new(thread_rng().gen_range(-9.0, 9.0), thread_rng().gen_range(-9.0, 9.0), 0.0),
                 });
                 *moving.get_mut_velocity() = STARTING_VELOCITY;
             }
@@ -92,9 +75,7 @@ impl System<Delta> for ScoreSystem {
                 Player::One => {
                     if my_pos.distance(other_pos) < 1.0 {
                         self.feeder_front_channel
-                            .send_to(ScoreToFeeder::Lose(other_player,
-                                                         300.0,
-                                                         -60.0));
+                            .send_to(ScoreToFeeder::Lose(other_player, 300.0, -60.0));
                         done = true;
                     }
                 }
@@ -105,9 +86,7 @@ impl System<Delta> for ScoreSystem {
                 Player::One => {
                     if other_pos.distance(my_pos) < 1.0 {
                         self.feeder_front_channel
-                            .send_to(ScoreToFeeder::Lose(my_player,
-                                                         300.0,
-                                                         -60.0));
+                            .send_to(ScoreToFeeder::Lose(my_player, 300.0, -60.0));
                         done = true;
                     }
                 }
@@ -117,20 +96,8 @@ impl System<Delta> for ScoreSystem {
                 self.time = 0.0;
                 for (player, mut transform, mut moving) in (&players, &mut transforms, &mut movings).iter() {
                     transform.set_pos(match player.get_player() {
-                        Player::One => {
-                            Vector3::new(thread_rng().gen_range(-9.0,
-                                                                9.0),
-                                         thread_rng().gen_range(-9.0,
-                                                                9.0),
-                                         0.0)
-                        }
-                        Player::Two => {
-                            Vector3::new(thread_rng().gen_range(-9.0,
-                                                                9.0),
-                                         thread_rng().gen_range(-9.0,
-                                                                9.0),
-                                         0.0)
-                        }
+                        Player::One => Vector3::new(thread_rng().gen_range(-9.0, 9.0), thread_rng().gen_range(-9.0, 9.0), 0.0),
+                        Player::Two => Vector3::new(thread_rng().gen_range(-9.0, 9.0), thread_rng().gen_range(-9.0, 9.0), 0.0),
                     });
                     *moving.get_mut_velocity() = STARTING_VELOCITY;
                 }
