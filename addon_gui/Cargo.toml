@@ -1,0 +1,9 @@
+[package]
+name = "addon_gui"
+version = "0.1.0"
+authors = ["yelikdev@gmail.com <Kiley Owen>"]
+
+[dependencies]
+components = { path="../components" }
+event = { path="../event" }
+event_enums = { path="../event_enums" }

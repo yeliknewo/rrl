@@ -6,12 +6,6 @@ use rand::{Rng, thread_rng};
 use specs::{Join, RunArg, System};
 use utils::{Coord, Delta, Player};
 
-pub const STARTING_VELOCITY: Vector3<Coord> = Vector3 {
-    x: 0.0,
-    y: 0.0,
-    z: 0.0,
-};
-
 pub struct ScoreSystem {
     feeder_front_channel: FrontChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
     time: f64,

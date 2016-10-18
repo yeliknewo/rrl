@@ -1,17 +1,18 @@
-use components::{Gui, RenderData};
-use event::BackChannel;
-use event_enums::control_x_gui::{ControlFromGui, ControlToGui};
+use base_comps::RenderData;
+use components::Gui;
+use event_core::BackChannel;
+use events::{FromGui, ToGui};
 use specs::{Allocator, Entity, MaskedStorage, RunArg, Storage, System};
 use std::ops::{Deref, DerefMut};
 use utils::Delta;
 
 pub struct GuiSystem {
     selected: Entity,
-    control_back_channel: BackChannel<ControlToGui<f64>, ControlFromGui>,
+    control_back_channel: BackChannel<ToGui, FromGui>,
 }
 
 impl GuiSystem {
-    pub fn new(selected: Entity, control_back_channel: BackChannel<ControlToGui<f64>, ControlFromGui>) -> GuiSystem {
+    pub fn new(selected: Entity, control_back_channel: BackChannel<ToGui, FromGui>) -> GuiSystem {
         GuiSystem {
             selected: selected,
             control_back_channel: control_back_channel,
@@ -73,55 +74,12 @@ impl System<Delta> for GuiSystem {
 
         while let Some(event) = self.control_back_channel.try_recv_to() {
             match event {
-                ControlToGui::Down(_amount, _player) => self.down_event(&guis, &mut render_datas),
-                ControlToGui::Up(_amount, _player) => self.up_event(&guis, &mut render_datas),
-                ControlToGui::Left(_amount, _player) => self.left_event(&guis, &mut render_datas),
-                ControlToGui::Right(_amount, _player) => self.right_event(&guis, &mut render_datas),
-                ControlToGui::Joy(x_opt, y_opt, _player) => {
-                    if let Some(x) = x_opt {
-                        if let Some(y) = y_opt {
-                            if x.abs() > y.abs() {
-                                if x > 0.0 {
-                                    self.right_event(&guis, &mut render_datas);
-                                } else {
-                                    self.left_event(&guis, &mut render_datas);
-                                }
-                            } else {
-                                if y > 0.0 {
-                                    self.up_event(&guis, &mut render_datas);
-                                } else {
-                                    self.down_event(&guis, &mut render_datas);
-                                }
-                            }
-                        } else {
-                            if x > 0.0 {
-                                self.right_event(&guis, &mut render_datas);
-                            } else {
-                                self.left_event(&guis, &mut render_datas);
-                            }
-                        }
-                    } else {
-                        if let Some(y) = y_opt {
-                            if y > 0.0 {
-                                self.up_event(&guis, &mut render_datas);
-                            } else {
-                                self.down_event(&guis, &mut render_datas);
-                            }
-                        }
-                    }
-                }
-                ControlToGui::A(_player) => {
-                    self.select_event(&guis, &mut render_datas);
-                }
-                ControlToGui::B(_player) => {
-                    self.cancel_event(&guis, &mut render_datas);
-                }
-                ControlToGui::X(_player) => {}
-                ControlToGui::Y(_player) => {}
-                ControlToGui::L1(_player) => {}
-                ControlToGui::L2(_player) => {}
-                ControlToGui::R1(_player) => {}
-                ControlToGui::R2(_player) => {}
+                ToGui::Down(_amount, _player) => self.down_event(&guis, &mut render_datas),
+                ToGui::Up(_amount, _player) => self.up_event(&guis, &mut render_datas),
+                ToGui::Left(_amount, _player) => self.left_event(&guis, &mut render_datas),
+                ToGui::Right(_amount, _player) => self.right_event(&guis, &mut render_datas),
+                ToGui::Select(_amount, _player) => self.select_event(&guis, &mut render_datas),
+                ToGui::Cancel(_amount, _player) => self.cancel_event(&guis, &mut render_datas),
             }
         }
     }

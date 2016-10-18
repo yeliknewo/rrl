@@ -1,0 +1,7 @@
+[package]
+name = "addon_platformer_movement"
+version = "0.1.0"
+authors = ["yelikdev@gmail.com <Kiley Owen>"]
+
+[dependencies]
+components = { path="../components" }
