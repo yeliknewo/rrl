@@ -1,8 +1,8 @@
+use base_comps::{CompMoving, CompPlayer, Transform};
+use base_events::feeder_x_ai::{FeederFromAi, FeederToAi};
+use base_events::score_x_feeder::{ScoreFromFeeder, ScoreToFeeder};
 use cgmath::Vector3;
-use components::{CompMoving, CompPlayer, Transform};
-use event::{BackChannel, FrontChannel};
-use event_enums::feeder_x_ai::{FeederFromAi, FeederToAi};
-use event_enums::score_x_feeder::{ScoreFromFeeder, ScoreToFeeder};
+use event_core::{BackChannel, FrontChannel};
 use specs::{Join, RunArg, System};
 use utils::{Coord, Delta, Player};
 

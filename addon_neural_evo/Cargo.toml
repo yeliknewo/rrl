@@ -1,9 +1,13 @@
 [package]
-name = "addon_platformer_movement"
+name = "addon_neural_evo"
 version = "0.1.0"
 authors = ["yelikdev@gmail.com <Kiley Owen>"]
 
 [dependencies]
+log = "0.3.6"
+find_folder = "0.3.0"
+
 components = { path="../components" }
 event = { path="../event" }
 event_enums = { path="../event_enums" }
+neural = { path="../neural" }

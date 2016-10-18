@@ -1,7 +1,7 @@
+use base_comps::{CompMoving, CompPlayer, Transform};
+use base_events::score_x_feeder::{ScoreFromFeeder, ScoreToFeeder};
 use cgmath::{MetricSpace, Vector3};
-use components::{CompMoving, CompPlayer, Transform};
-use event::FrontChannel;
-use event_enums::score_x_feeder::{ScoreFromFeeder, ScoreToFeeder};
+use event_core::FrontChannel;
 use rand::{Rng, thread_rng};
 use specs::{Join, RunArg, System};
 use utils::{Coord, Delta, Player};
@@ -56,7 +56,7 @@ impl System<Delta> for ScoreSystem {
                     Player::One => Vector3::new(thread_rng().gen_range(-9.0, 9.0), thread_rng().gen_range(-9.0, 9.0), 0.0),
                     Player::Two => Vector3::new(thread_rng().gen_range(-9.0, 9.0), thread_rng().gen_range(-9.0, 9.0), 0.0),
                 });
-                *moving.get_mut_velocity() = STARTING_VELOCITY;
+                *moving.get_mut_velocity() = Vector3::new(0.0, 0.0, 0.0);
             }
         } else {
             let my_player = player_info.get(0).unwrap_or_else(|| panic!("Panic")).0;
@@ -93,7 +93,7 @@ impl System<Delta> for ScoreSystem {
                         Player::One => Vector3::new(thread_rng().gen_range(-9.0, 9.0), thread_rng().gen_range(-9.0, 9.0), 0.0),
                         Player::Two => Vector3::new(thread_rng().gen_range(-9.0, 9.0), thread_rng().gen_range(-9.0, 9.0), 0.0),
                     });
-                    *moving.get_mut_velocity() = STARTING_VELOCITY;
+                    *moving.get_mut_velocity() = Vector3::new(0.0, 0.0, 0.0);
                 }
             }
         }

@@ -1,7 +1,7 @@
-use event::{BackChannel, FrontChannel};
-use event_enums::ai_x_control::{AiFromControl, AiToControl};
-use event_enums::feeder_x_ai::{FeederFromAi, FeederToAi};
-use event_enums::main_x_ai::{MainFromAi, MainToAi};
+use base_events::ai_x_control::{AiFromControl, AiToControl};
+use base_events::feeder_x_ai::{FeederFromAi, FeederToAi};
+use base_events::main_x_ai::{MainFromAi, MainToAi};
+use event_core::{BackChannel, FrontChannel};
 use find_folder::Search;
 use neural::evolution::EvolutionaryTrainer;
 use neural::network::NeuralNetwork;

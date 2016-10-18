@@ -19,20 +19,12 @@ pub mod crates {
 
 pub use crates::{cgmath, find_folder, getopts, gfx, graphics, num, rand, rustc_serialize, specs, utils};
 
-pub mod ai;
 pub mod control;
-pub mod feeder;
-pub mod gui;
 pub mod moving;
 pub mod player;
 pub mod render;
-pub mod score;
 
-pub use self::ai::AiSystem;
 pub use self::control::ControlSystem;
-pub use self::feeder::FeederSystem;
-pub use self::gui::GuiSystem;
 pub use self::moving::MovingSystem;
 pub use self::player::PlayerSystem;
 pub use self::render::RenderSystem;
-pub use self::score::ScoreSystem;
