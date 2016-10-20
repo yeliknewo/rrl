@@ -1,7 +1,5 @@
-use base_events::ai_x_control::{AiFromControl, AiToControl};
-use base_events::feeder_x_ai::{FeederFromAi, FeederToAi};
-use base_events::main_x_ai::{MainFromAi, MainToAi};
-use event_core::{BackChannel, FrontChannel};
+use event_core::duo_channel::DuoChannel;
+use events::{FromAi, ToAi};
 use find_folder::Search;
 use neural::evolution::EvolutionaryTrainer;
 use neural::network::NeuralNetwork;
@@ -192,7 +190,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
         self.used_indices.sort();
     }
 
-    fn think(&mut self, player: Player, inputs: &mut Vec<W>) -> AiToControl<W> {
+    fn think<F: FromPrimitive, E2: Into<FromAi<F>>>(&mut self, player: Player, inputs: &mut Vec<W>) -> E2 {
         // let dot1 = dot(vec[0].1, vec[1].1);
         // let dot2 = dot(vec[1].1, vec[0].1);
         //
@@ -219,7 +217,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
 
         let atan = y.atan2(x);
 
-        AiToControl::Joy(atan.cos(), atan.sin(), player)
+        FromAi::Joy(atan.cos(), atan.sin(), player)
 
         // for info in inputs {
         //     let index = *self.player_mapper.get(&player).unwrap_or_else(|| panic!("Player mapper get info.0 was none"));
@@ -286,20 +284,29 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
     }
 }
 
-pub struct AiSystem<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> {
-    main_back_channel: BackChannel<MainToAi, MainFromAi>,
-    feeder_back_channel: BackChannel<FeederToAi<S, W>, FeederFromAi>,
-    control_front_channel: FrontChannel<AiToControl<W>, AiFromControl>,
+type SendEvent<C> = Box<From<FromAi<C>>>;
+type RecvEvent<S, W> = Box<Into<ToAi<S, W>>>;
+
+pub struct AiSystem<ID: Eq, C: FromPrimitive, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> {
+    channels: Vec<DuoChannel<ID, SendEvent<C>, RecvEvent<S, W>>>,
+    // main_back_channel: BackChannel<Box<Into<ToAi<S, W>>>, EF1>,
+    // feeder_back_channel: BackChannel<ET2, EF2>,
+    // control_front_channel: FrontChannel<ET3, EF3>,
     brain_type: HashMap<Brain, BrainClump<S, W>>,
     brain_mapper: HashMap<Player, Brain>,
     mutation_mult_picker: Box<F1>,
     mutation_add_picker: Box<F2>,
 }
 
-impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> AiSystem<S, W, F1, F2> {
-    pub fn new(main_back_channel: BackChannel<MainToAi, MainFromAi>,
-               feeder_back_channel: BackChannel<FeederToAi<S, W>, FeederFromAi>,
-               control_front_channel: FrontChannel<AiToControl<W>, AiFromControl>,
+impl<'a, 'b, ID, C, S, W, F1, F2> AiSystem<ID, C, S, W, F1, F2>
+    where ID: Eq,
+          C: FromPrimitive,
+          S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num,
+          W: Float + SampleRange + FromPrimitive + Decodable + Encodable,
+          F1: Send + Fn() -> W,
+          F2: Send + Fn() -> W
+{
+    pub fn new(back_channels: Vec<DuoChannel<ID, SendEvent<C>, RecvEvent<S, W>>>,
                network_size_chase: Vec<S>,
                network_size_flee: Vec<S>,
                network_count: usize,
@@ -309,7 +316,7 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
                max_bias: W,
                mutation_mult_picker: Box<F1>,
                mutation_add_picker: Box<F2>)
-               -> AiSystem<S, W, F1, F2> {
+               -> AiSystem<ID, C, S, W, F1, F2> {
         let input_size = S::from_u8(4).unwrap_or_else(|| panic!("S From u8 4 was none"));
 
         let mut brain_type: HashMap<Brain, BrainClump<S, W>> = HashMap::new();
@@ -327,9 +334,9 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
                           }));
 
         let mut system = AiSystem {
-            main_back_channel: main_back_channel,
-            feeder_back_channel: feeder_back_channel,
-            control_front_channel: control_front_channel,
+            // main_back_channel: main_back_channel,
+            // feeder_back_channel: feeder_back_channel,
+            // control_front_channel: control_front_channel,
             brain_type: brain_type,
             brain_mapper: HashMap::new(),
             mutation_mult_picker: mutation_mult_picker,
@@ -359,9 +366,9 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
             .add_player(player);
     }
 
-    fn process_event(&mut self, event: FeederToAi<S, W>) {
+    fn process_event(&mut self, event: Box<ToAi<S, W>>) {
         match event {
-            FeederToAi::WorldState(player, mut vec) => {
+            ToAi::WorldState(player, mut vec) => {
                 let brain = match self.brain_mapper.get(&player) {
                     Some(brain) => brain,
                     None => return,
@@ -372,7 +379,7 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
                     .think(player, &mut vec);
                 self.control_front_channel.send_to(thought);
             }
-            FeederToAi::Reward(vec) => {
+            ToAi::Reward(vec) => {
                 for reward in &vec {
                     let brain = match self.brain_mapper.get(&reward.0) {
                         Some(brain) => brain,
@@ -384,7 +391,7 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
                         .prep_reward(reward.clone());
                 }
             }
-            FeederToAi::RewardAndEnd(vec) => {
+            ToAi::RewardAndEnd(vec) => {
                 for reward in &vec {
                     let brain = match self.brain_mapper.get(&reward.0) {
                         Some(brain) => brain,
@@ -406,10 +413,15 @@ impl<'a, 'b, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + From
     }
 }
 
-impl<'a, 'b, S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive + FromPrimitive + Num, W: Send + Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> System<Delta> for AiSystem<S, W, F1, F2> {
-    fn run(&mut self,
-           arg: RunArg,
-           _delta_time: Delta) {
+impl<'a, 'b, ID, C, S, W, F1, F2> System<Delta> for AiSystem<ID, C, S, W, F1, F2>
+    where ID: Eq,
+          C: FromPrimitive,
+          S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive + FromPrimitive + Num,
+          W: Send + Float + SampleRange + FromPrimitive + Decodable + Encodable,
+          F1: Send + Fn() -> W,
+          F2: Send + Fn() -> W
+{
+    fn run(&mut self, arg: RunArg, _delta_time: Delta) {
 
         while let Some(event) = self.feeder_back_channel.try_recv_to() {
             self.process_event(event);
@@ -417,9 +429,9 @@ impl<'a, 'b, S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive
 
         if let Some(event) = self.main_back_channel.try_recv_to() {
             match event {
-                MainToAi::Save => {
+                ToAi::Save => {
                     self.save();
-                    self.main_back_channel.send_from(MainFromAi::Saved);
+                    self.main_back_channel.send_from(FromAi::Saved);
                 }
             }
         }

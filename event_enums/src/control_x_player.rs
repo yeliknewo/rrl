@@ -1,4 +1,5 @@
-use ::ai_x_control::AiToControl;
+// use ::ai_x_control::AiToControl;
+
 use ::main_x_control::MainToControl;
 use utils::Player;
 
@@ -40,25 +41,25 @@ impl<W> From<MainToControl<W>> for ControlToPlayer<W> {
     }
 }
 
-impl<W> From<AiToControl<W>> for ControlToPlayer<W> {
-    fn from(other: AiToControl<W>) -> ControlToPlayer<W> {
-        match other {
-            AiToControl::Up(amount, player) => ControlToPlayer::Up(amount, player),
-            AiToControl::Down(amount, player) => ControlToPlayer::Down(amount, player),
-            AiToControl::Left(amount, player) => ControlToPlayer::Left(amount, player),
-            AiToControl::Right(amount, player) => ControlToPlayer::Right(amount, player),
-            AiToControl::Joy(x, y, player) => ControlToPlayer::Joy(Some(x), Some(y), player),
-            AiToControl::A(player) => ControlToPlayer::A(player),
-            AiToControl::B(player) => ControlToPlayer::B(player),
-            AiToControl::X(player) => ControlToPlayer::X(player),
-            AiToControl::Y(player) => ControlToPlayer::Y(player),
-            AiToControl::L1(player) => ControlToPlayer::L1(player),
-            AiToControl::L2(player) => ControlToPlayer::L2(player),
-            AiToControl::R1(player) => ControlToPlayer::R1(player),
-            AiToControl::R2(player) => ControlToPlayer::R2(player),
-        }
-    }
-}
+// impl<W> From<AiToControl<W>> for ControlToPlayer<W> {
+//     fn from(other: AiToControl<W>) -> ControlToPlayer<W> {
+//         match other {
+//             AiToControl::Up(amount, player) => ControlToPlayer::Up(amount, player),
+//             AiToControl::Down(amount, player) => ControlToPlayer::Down(amount, player),
+//             AiToControl::Left(amount, player) => ControlToPlayer::Left(amount, player),
+//             AiToControl::Right(amount, player) => ControlToPlayer::Right(amount, player),
+//             AiToControl::Joy(x, y, player) => ControlToPlayer::Joy(Some(x), Some(y), player),
+//             AiToControl::A(player) => ControlToPlayer::A(player),
+//             AiToControl::B(player) => ControlToPlayer::B(player),
+//             AiToControl::X(player) => ControlToPlayer::X(player),
+//             AiToControl::Y(player) => ControlToPlayer::Y(player),
+//             AiToControl::L1(player) => ControlToPlayer::L1(player),
+//             AiToControl::L2(player) => ControlToPlayer::L2(player),
+//             AiToControl::R1(player) => ControlToPlayer::R1(player),
+//             AiToControl::R2(player) => ControlToPlayer::R2(player),
+//         }
+//     }
+// }
 
 #[derive(Debug)]
 pub enum ControlFromPlayer {

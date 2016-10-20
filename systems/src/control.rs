@@ -12,7 +12,7 @@ pub struct ControlSystem {
     main_back_channel: BackChannel<MainToControl<f64>, MainFromControl>,
     ai_back_channel: BackChannel<AiToControl<f64>, AiFromControl>,
     player_front_channel: Option<FrontChannel<ControlToPlayer<f64>, ControlFromPlayer>>,
-    gui_front_channel: Option<FrontChannel<ControlToGui<f64>, ControlFromGui>>,
+    gui_front_channel: Option<FrontChannel<ControlToGui, ControlFromGui>>,
     repeat_map: HashMap<RepeatEvent, ControlToPlayer<f64>>,
     time: f64,
 }
@@ -36,7 +36,7 @@ impl ControlSystem {
     pub fn new(main_back_channel: BackChannel<MainToControl<f64>, MainFromControl>,
                ai_back_channel: BackChannel<AiToControl<f64>, AiFromControl>,
                player_front_channel: FrontChannel<ControlToPlayer<f64>, ControlFromPlayer>,
-               gui_front_channel: FrontChannel<ControlToGui<f64>, ControlFromGui>)
+               gui_front_channel: FrontChannel<ControlToGui, ControlFromGui>)
                -> ControlSystem {
         ControlSystem {
             main_back_channel: main_back_channel,

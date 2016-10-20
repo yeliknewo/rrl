@@ -1,0 +1,6 @@
+[package]
+name = "addon_glue"
+version = "0.1.0"
+authors = ["yelikdev@gmail.com <Kiley Owen>"]
+
+[dependencies]

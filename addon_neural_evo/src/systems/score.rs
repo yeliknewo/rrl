@@ -1,26 +1,38 @@
 use base_comps::{CompMoving, CompPlayer, Transform};
 use base_events::score_x_feeder::{ScoreFromFeeder, ScoreToFeeder};
 use cgmath::{MetricSpace, Vector3};
-use event_core::FrontChannel;
+use event_core::duo_channel::DuoChannel;
+use events::{FromScore, ToScore};
 use rand::{Rng, thread_rng};
 use specs::{Join, RunArg, System};
 use utils::{Coord, Delta, Player};
 
-pub struct ScoreSystem {
-    feeder_front_channel: FrontChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
+type SendEvent = Box<From<FromScore>>;
+type RecvEvent = Box<Into<ToScore>>;
+
+pub struct ScoreSystem<ID: Eq> {
+    // feeder_front_channel: FrontChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
+    feeder_channel_id: ID,
+    channels: Vec<DuoChannel<ID, SendEvent, RecvEvent>>,
     time: f64,
 }
 
-impl ScoreSystem {
-    pub fn new(feeder_front_channel: FrontChannel<ScoreToFeeder<f64>, ScoreFromFeeder>) -> ScoreSystem {
+impl<ID> ScoreSystem<ID>
+    where ID: Eq
+{
+    pub fn new(channels: Vec<DuoChannel<ID, SendEvent, RecvEvent>>, feeder_channel_id: ID) -> ScoreSystem<ID> {
         ScoreSystem {
-            feeder_front_channel: feeder_front_channel,
+            feeder_channel_id: feeder_channel_id,
+            channels: channels,
+            // feeder_front_channel: feeder_front_channel,
             time: 0.0,
         }
     }
 }
 
-impl System<Delta> for ScoreSystem {
+impl<ID> System<Delta> for ScoreSystem<ID>
+    where ID: Eq
+{
     fn run(&mut self, args: RunArg, delta_time: Delta) {
         self.time += delta_time;
 

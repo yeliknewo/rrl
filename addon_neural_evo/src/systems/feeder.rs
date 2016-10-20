@@ -1,30 +1,35 @@
 use base_comps::{CompMoving, CompPlayer, Transform};
-use base_events::feeder_x_ai::{FeederFromAi, FeederToAi};
 use base_events::score_x_feeder::{ScoreFromFeeder, ScoreToFeeder};
 use cgmath::Vector3;
-use event_core::{BackChannel, FrontChannel};
+use event_core::duo_channel::DuoChannel;
+use events::{FromAi, ToAi};
+use events::{FromFeeder, ToFeeder};
 use specs::{Join, RunArg, System};
 use utils::{Coord, Delta, Player};
 
 // const DISTANCE_WEIGHT: f32 = 5.0;
 // const TIME_WEIGHT: f64 = 1.0;
 
-pub struct FeederSystem<T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>, F: Send + Fn(f64, f64) -> Vec<(Player, i64)>> {
-    ai_front_channel: FrontChannel<FeederToAi<i64, f64>, FeederFromAi>,
-    score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
+type SendEvent = Box<Send + From<FromFeeder>>;
+type RecvEvent = Box<Into<ToFeeder>>;
+
+pub struct FeederSystem<ID: Eq, T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>, F: Send + Fn(f64, f64) -> Vec<(Player, i64)>> {
+    channels: Vec<DuoChannel<ID, SendEvent, RecvEvent>>,
+    // ai_front_channel: FrontChannel<E1, E2>,
+    // score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
     one_player_lose: T,
     both_player_lose: F,
     time: f64,
 }
 
-impl<T, F> FeederSystem<T, F>
-    where T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>,
+impl<ID, T, F> FeederSystem<ID, T, F>
+    where ID: Eq,
+          T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>,
           F: Send + Fn(f64, f64) -> Vec<(Player, i64)>
 {
-    pub fn new(ai_front_channel: FrontChannel<FeederToAi<i64, f64>, FeederFromAi>, score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>, one_player_lose: T, both_player_lose: F) -> FeederSystem<T, F> {
+    pub fn new(channels: Vec<DuoChannel<ID, SendEvent, RecvEvent>>, one_player_lose: T, both_player_lose: F) -> FeederSystem<ID, T, F> {
         FeederSystem {
-            ai_front_channel: ai_front_channel,
-            score_back_channel: score_back_channel,
+            channels: channels,
             time: 0.0,
             one_player_lose: one_player_lose,
             both_player_lose: both_player_lose,
@@ -32,8 +37,9 @@ impl<T, F> FeederSystem<T, F>
     }
 }
 
-impl<T, F> System<Delta> for FeederSystem<T, F>
-    where T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>,
+impl<ID, T, F> System<Delta> for FeederSystem<ID, T, F>
+    where ID: Send + Eq,
+          T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>,
           F: Send + Fn(f64, f64) -> Vec<(Player, i64)>
 {
     fn run(&mut self, arg: RunArg, delta_time: Delta) {
@@ -44,13 +50,13 @@ impl<T, F> System<Delta> for FeederSystem<T, F>
         if let Some(event) = self.score_back_channel.try_recv_to() {
             match event {
                 ScoreToFeeder::Lose(loser, score_1, score_2) => {
-                    self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
+                    self.ai_front_channel.send_to(ToAi::RewardAndEnd({
                         (self.one_player_lose)(loser, score_1, score_2)
                     }));
                     self.time = 0.0;
                 }
                 ScoreToFeeder::LoseBoth(score_1, score_2) => {
-                    self.ai_front_channel.send_to(FeederToAi::RewardAndEnd({
+                    self.ai_front_channel.send_to(ToAi::RewardAndEnd({
                         (self.both_player_lose)(score_1, score_2)
                     }));
                     self.time = 0.0;
@@ -64,7 +70,7 @@ impl<T, F> System<Delta> for FeederSystem<T, F>
             player_data.push((player.get_player(), transform.get_pos(), moving.get_velocity()));
         }
 
-        self.ai_front_channel.send_to(FeederToAi::Reward(player_data.iter()
+        self.ai_front_channel.send_to(ToAi::Reward(player_data.iter()
             .filter_map(|me| {
                 let other = player_data.iter()
                     .filter_map(|other| {
@@ -104,7 +110,7 @@ impl<T, F> System<Delta> for FeederSystem<T, F>
                 }
             };
 
-            self.ai_front_channel.send_to(FeederToAi::WorldState(player, world_state));
+            self.ai_front_channel.send_to(ToAi::WorldState(player, world_state));
         }
     }
 }
