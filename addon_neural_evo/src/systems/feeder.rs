@@ -5,16 +5,14 @@ use event_core::duo_channel::DuoChannel;
 use events::{FromAi, ToAi};
 use events::{FromFeeder, ToFeeder};
 use specs::{Join, RunArg, System};
+use std::any::Any;
 use utils::{Coord, Delta, Player};
 
 // const DISTANCE_WEIGHT: f32 = 5.0;
 // const TIME_WEIGHT: f64 = 1.0;
 
-type SendEvent = Box<Send + From<FromFeeder>>;
-type RecvEvent = Box<Into<ToFeeder>>;
-
 pub struct FeederSystem<ID: Eq, T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>, F: Send + Fn(f64, f64) -> Vec<(Player, i64)>> {
-    channels: Vec<DuoChannel<ID, SendEvent, RecvEvent>>,
+    channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
     // ai_front_channel: FrontChannel<E1, E2>,
     // score_back_channel: BackChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
     one_player_lose: T,
@@ -27,7 +25,7 @@ impl<ID, T, F> FeederSystem<ID, T, F>
           T: Send + Fn(Player, f64, f64) -> Vec<(Player, i64)>,
           F: Send + Fn(f64, f64) -> Vec<(Player, i64)>
 {
-    pub fn new(channels: Vec<DuoChannel<ID, SendEvent, RecvEvent>>, one_player_lose: T, both_player_lose: F) -> FeederSystem<ID, T, F> {
+    pub fn new(channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>, one_player_lose: T, both_player_lose: F) -> FeederSystem<ID, T, F> {
         FeederSystem {
             channels: channels,
             time: 0.0,

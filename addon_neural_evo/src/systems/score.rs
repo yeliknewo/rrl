@@ -5,6 +5,7 @@ use event_core::duo_channel::DuoChannel;
 use events::{FromScore, ToScore};
 use rand::{Rng, thread_rng};
 use specs::{Join, RunArg, System};
+use std::any::Any;
 use utils::{Coord, Delta, Player};
 
 type SendEvent = Box<From<FromScore>>;
@@ -13,14 +14,14 @@ type RecvEvent = Box<Into<ToScore>>;
 pub struct ScoreSystem<ID: Eq> {
     // feeder_front_channel: FrontChannel<ScoreToFeeder<f64>, ScoreFromFeeder>,
     feeder_channel_id: ID,
-    channels: Vec<DuoChannel<ID, SendEvent, RecvEvent>>,
+    channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
     time: f64,
 }
 
 impl<ID> ScoreSystem<ID>
     where ID: Eq
 {
-    pub fn new(channels: Vec<DuoChannel<ID, SendEvent, RecvEvent>>, feeder_channel_id: ID) -> ScoreSystem<ID> {
+    pub fn new(channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>, feeder_channel_id: ID) -> ScoreSystem<ID> {
         ScoreSystem {
             feeder_channel_id: feeder_channel_id,
             channels: channels,
@@ -31,7 +32,7 @@ impl<ID> ScoreSystem<ID>
 }
 
 impl<ID> System<Delta> for ScoreSystem<ID>
-    where ID: Eq
+    where ID: Eq + Send
 {
     fn run(&mut self, args: RunArg, delta_time: Delta) {
         self.time += delta_time;

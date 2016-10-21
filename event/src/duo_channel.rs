@@ -45,7 +45,3 @@ impl<ID: Eq, S, R> DuoChannel<ID, S, R> {
         &self.id
     }
 }
-
-pub trait FromSend: From {
-    fn from(T) -> Self;
-}

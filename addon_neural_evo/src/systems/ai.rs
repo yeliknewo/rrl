@@ -7,6 +7,7 @@ use num::{Float, FromPrimitive, Num, ToPrimitive};
 use rand::distributions::range::SampleRange;
 use rustc_serialize::{Decodable, Encodable, json};
 use specs::{RunArg, System};
+use std::any::Any;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs::File;
@@ -39,7 +40,7 @@ impl<'a> Brain {
 }
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
-struct BrainClump<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable> {
+struct BrainClump<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable> {
     trainer: EvolutionaryTrainer<S, W>,
     player_mapper: HashMap<Player, usize>,
     used_indices: Vec<usize>,
@@ -47,7 +48,7 @@ struct BrainClump<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive +
     players: Vec<Player>,
 }
 
-impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable> BrainClump<S, W> {
+impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable> BrainClump<S, W> {
     fn new(network_count: usize, input_size: S, network_size: Vec<S>, min_weight: W, max_weight: W, min_bias: W, max_bias: W) -> BrainClump<S, W> {
         let mut networks = HashMap::new();
 
@@ -190,7 +191,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
         self.used_indices.sort();
     }
 
-    fn think<F: FromPrimitive, E2: Into<FromAi<F>>>(&mut self, player: Player, inputs: &mut Vec<W>) -> E2 {
+    fn think<F: FromPrimitive>(&mut self, player: Player, inputs: &mut Vec<W>) -> Box<Any + Send> {
         // let dot1 = dot(vec[0].1, vec[1].1);
         // let dot2 = dot(vec[1].1, vec[0].1);
         //
@@ -217,7 +218,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
 
         let atan = y.atan2(x);
 
-        FromAi::Joy(atan.cos(), atan.sin(), player)
+        Box::new(FromAi::Joy(atan.cos(), atan.sin(), player))
 
         // for info in inputs {
         //     let index = *self.player_mapper.get(&player).unwrap_or_else(|| panic!("Player mapper get info.0 was none"));
@@ -284,11 +285,9 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Floa
     }
 }
 
-type SendEvent<C> = Box<From<FromAi<C>>>;
-type RecvEvent<S, W> = Box<Into<ToAi<S, W>>>;
-
-pub struct AiSystem<ID: Eq, C: FromPrimitive, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> {
-    channels: Vec<DuoChannel<ID, SendEvent<C>, RecvEvent<S, W>>>,
+pub struct AiSystem<ID: Eq, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> {
+    control_channel_index: usize,
+    channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
     // main_back_channel: BackChannel<Box<Into<ToAi<S, W>>>, EF1>,
     // feeder_back_channel: BackChannel<ET2, EF2>,
     // control_front_channel: FrontChannel<ET3, EF3>,
@@ -298,15 +297,15 @@ pub struct AiSystem<ID: Eq, C: FromPrimitive, S: Debug + Ord + Clone + Decodable
     mutation_add_picker: Box<F2>,
 }
 
-impl<'a, 'b, ID, C, S, W, F1, F2> AiSystem<ID, C, S, W, F1, F2>
+impl<'a, 'b, ID, S, W, F1, F2> AiSystem<ID, S, W, F1, F2>
     where ID: Eq,
-          C: FromPrimitive,
           S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num,
-          W: Float + SampleRange + FromPrimitive + Decodable + Encodable,
+          W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable,
           F1: Send + Fn() -> W,
           F2: Send + Fn() -> W
 {
-    pub fn new(back_channels: Vec<DuoChannel<ID, SendEvent<C>, RecvEvent<S, W>>>,
+    pub fn new(channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
+               control_channel_id: ID,
                network_size_chase: Vec<S>,
                network_size_flee: Vec<S>,
                network_count: usize,
@@ -316,7 +315,7 @@ impl<'a, 'b, ID, C, S, W, F1, F2> AiSystem<ID, C, S, W, F1, F2>
                max_bias: W,
                mutation_mult_picker: Box<F1>,
                mutation_add_picker: Box<F2>)
-               -> AiSystem<ID, C, S, W, F1, F2> {
+               -> AiSystem<ID, S, W, F1, F2> {
         let input_size = S::from_u8(4).unwrap_or_else(|| panic!("S From u8 4 was none"));
 
         let mut brain_type: HashMap<Brain, BrainClump<S, W>> = HashMap::new();
@@ -334,6 +333,8 @@ impl<'a, 'b, ID, C, S, W, F1, F2> AiSystem<ID, C, S, W, F1, F2>
                           }));
 
         let mut system = AiSystem {
+            channels: channels,
+            control_channel_index: channels.unwrap_or_else(|err| panic!("{:?}", err)),
             // main_back_channel: main_back_channel,
             // feeder_back_channel: feeder_back_channel,
             // control_front_channel: control_front_channel,
@@ -367,6 +368,7 @@ impl<'a, 'b, ID, C, S, W, F1, F2> AiSystem<ID, C, S, W, F1, F2>
     }
 
     fn process_event(&mut self, event: Box<ToAi<S, W>>) {
+        let event = *event;
         match event {
             ToAi::WorldState(player, mut vec) => {
                 let brain = match self.brain_mapper.get(&player) {
@@ -413,11 +415,10 @@ impl<'a, 'b, ID, C, S, W, F1, F2> AiSystem<ID, C, S, W, F1, F2>
     }
 }
 
-impl<'a, 'b, ID, C, S, W, F1, F2> System<Delta> for AiSystem<ID, C, S, W, F1, F2>
-    where ID: Eq,
-          C: FromPrimitive,
+impl<'a, 'b, ID, S, W, F1, F2> System<Delta> for AiSystem<ID, S, W, F1, F2>
+    where ID: Eq + Send,
           S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive + FromPrimitive + Num,
-          W: Send + Float + SampleRange + FromPrimitive + Decodable + Encodable,
+          W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable,
           F1: Send + Fn() -> W,
           F2: Send + Fn() -> W
 {
