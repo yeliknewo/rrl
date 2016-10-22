@@ -1,5 +1,5 @@
-use ::{ColorFormat, GlFactory, GlTexture};
 
+use ::{ColorFormat, GlFactory, GlTexture};
 use gfx::Factory;
 use gfx::tex::{AaMode, Kind, Size};
 use image;

@@ -1,31 +1,20 @@
 #[macro_use]
 extern crate log;
 #[macro_use]
-pub extern crate gfx;
-pub extern crate gfx_device_gl;
+extern crate gfx;
+extern crate gfx_device_gl;
 #[cfg(feature = "g_glutin")]
-pub extern crate glutin;
+extern crate glutin;
 #[cfg(feature = "g_glutin")]
-pub extern crate gfx_window_glutin;
+extern crate gfx_window_glutin;
 #[cfg(feature = "g_sdl2")]
-pub extern crate sdl2;
+extern crate sdl2;
 #[cfg(feature = "g_sdl2")]
-pub extern crate gfx_window_sdl;
-pub extern crate find_folder;
-pub extern crate image;
+extern crate gfx_window_sdl;
+extern crate find_folder;
+extern crate image;
 
-pub extern crate utils;
-
-pub mod crates {
-    pub use ::{find_folder, gfx, gfx_device_gl, image, utils};
-    #[cfg(feature = "g_glutin")]
-    pub use ::{gfx_window_glutin, glutin};
-    #[cfg(feature = "g_sdl2")]
-    pub use ::{gfx_window_sdl, sdl2};
-    pub use utils::crates::{cgmath, getopts, rustc_serialize};
-}
-
-pub use crates::{cgmath, rustc_serialize};
+extern crate utils;
 
 pub mod pipeline;
 #[cfg(feature = "g_glutin")]
@@ -35,20 +24,20 @@ pub mod rl_sdl2;
 pub mod shaders;
 pub mod texture;
 
-pub use pipeline::{Bundle, Packet, ProjectionData, TextureData, Vertex, make_shaders, pipe};
-pub use shaders::Shaders;
-pub use texture::load_texture;
+pub use self::pipeline::{Bundle, Packet, ProjectionData, TextureData, Vertex, make_shaders, pipe};
+pub use self::shaders::Shaders;
+pub use self::texture::load_texture;
 
-pub type GlDevice = gfx_device_gl::Device;
-pub type GlFactory = gfx_device_gl::Factory;
-pub type GlResources = gfx_device_gl::Resources;
-pub type GlCommandBuffer = gfx_device_gl::CommandBuffer;
-pub type ColorFormat = gfx::format::Srgba8;
-pub type DepthFormat = gfx::format::DepthStencil;
-pub type OutColor = gfx::handle::RenderTargetView<GlResources, ColorFormat>;
-pub type OutDepth = gfx::handle::DepthStencilView<GlResources, DepthFormat>;
-pub type GlEncoder = gfx::Encoder<GlResources, GlCommandBuffer>;
-pub type GlTexture = gfx::handle::ShaderResourceView<GlResources, [f32; 4]>;
+pub type GlDevice = ::gfx_device_gl::Device;
+pub type GlFactory = ::gfx_device_gl::Factory;
+pub type GlResources = ::gfx_device_gl::Resources;
+pub type GlCommandBuffer = ::gfx_device_gl::CommandBuffer;
+pub type ColorFormat = ::gfx::format::Srgba8;
+pub type DepthFormat = ::gfx::format::DepthStencil;
+pub type OutColor = ::gfx::handle::RenderTargetView<GlResources, ColorFormat>;
+pub type OutDepth = ::gfx::handle::DepthStencilView<GlResources, DepthFormat>;
+pub type GlEncoder = ::gfx::Encoder<GlResources, GlCommandBuffer>;
+pub type GlTexture = ::gfx::handle::ShaderResourceView<GlResources, [f32; 4]>;
 pub type WindowSettings<'a> = (&'a str, u32, u32);
 
 pub struct GfxWindow<W, T> {

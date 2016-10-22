@@ -1,3 +1,5 @@
+use utils::Player;
+
 #[derive(Debug)]
 pub enum FeederToAi<S, W> {
     WorldState(Player, Vec<W>),

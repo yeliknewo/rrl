@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["yelikdev@gmail.com <Kiley Owen>"]
 
 [dependencies]
-components = { path="../components" }
-event = { path="../event" }
-event_enums = { path="../event_enums" }
+base_comps = { path="../base_comps" }
+event_core = { path="../event_core" }
+base_events = { path="../base_events" }
+specs = "0.7.0"
+utils = { path="../utils" }

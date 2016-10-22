@@ -1,8 +1,9 @@
 [root]
-name = "event_enums"
+name = "base_events"
 version = "0.1.0"
 dependencies = [
  "graphics 0.1.0",
+ "utils 0.1.0",
 ]
 
 [[package]]

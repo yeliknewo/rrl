@@ -6,8 +6,14 @@ authors = ["yelikdev@gmail.com <Kiley Owen>"]
 [dependencies]
 log = "0.3.6"
 find_folder = "0.3.0"
+num = "0.1.36"
+rand = "0.3.14"
+rustc-serialize = "0.3"
+specs = "0.7.0"
+cgmath = "0.12.0"
 
-components = { path="../components" }
-event = { path="../event" }
-event_enums = { path="../event_enums" }
+utils = { path="../utils" }
+base_comps = { path="../base_comps" }
+event_core = { path="../event_core" }
+base_events = { path="../base_events" }
 neural = { path="../neural" }

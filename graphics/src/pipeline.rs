@@ -1,7 +1,7 @@
 use ::{GlEncoder, GlResources};
 use gfx::{PipelineState, Slice};
 use gfx::state::Rasterizer;
-use shaders::Shaders;
+use ::shaders::Shaders;
 
 pub type Index = u32;
 

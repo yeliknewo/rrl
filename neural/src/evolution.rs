@@ -1,4 +1,4 @@
-use network::NeuralNetwork;
+use ::network::NeuralNetwork;
 use num::{Float, FromPrimitive};
 use rand::{Rng, thread_rng};
 use rand::distributions::range::SampleRange;

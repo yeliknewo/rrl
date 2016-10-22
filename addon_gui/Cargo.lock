@@ -2,9 +2,11 @@
 name = "addon_gui"
 version = "0.1.0"
 dependencies = [
- "components 0.1.0",
- "event 0.1.0",
- "event_enums 0.1.0",
+ "base_comps 0.1.0",
+ "base_events 0.1.0",
+ "event_core 0.1.0",
+ "specs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "utils 0.1.0",
 ]
 
 [[package]]
@@ -16,6 +18,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "atom"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "base_comps"
+version = "0.1.0"
+dependencies = [
+ "cgmath 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "specs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "utils 0.1.0",
+]
+
+[[package]]
+name = "base_events"
+version = "0.1.0"
+dependencies = [
+ "graphics 0.1.0",
+ "utils 0.1.0",
+]
 
 [[package]]
 name = "bitflags"
@@ -49,14 +68,6 @@ version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "components"
-version = "0.1.0"
-dependencies = [
- "specs 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "utils 0.1.0",
-]
-
-[[package]]
 name = "deque"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -81,15 +92,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "event"
+name = "event_core"
 version = "0.1.0"
-
-[[package]]
-name = "event_enums"
-version = "0.1.0"
-dependencies = [
- "graphics 0.1.0",
-]
 
 [[package]]
 name = "find_folder"

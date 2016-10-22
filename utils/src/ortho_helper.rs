@@ -1,5 +1,3 @@
-
-
 use ::GfxCoord;
 use cgmath::{Matrix4, Ortho};
 

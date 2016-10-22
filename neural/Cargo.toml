@@ -7,4 +7,5 @@ authors = ["Kiley Owen <yelikdev@gmail.com>"]
 log = "0.3.6"
 rand = "0.3.14"
 num = "0.1.36"
+rustc-serialize = "0.3"
 utils = { path="../utils" }

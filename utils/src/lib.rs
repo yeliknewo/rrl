@@ -1,20 +1,16 @@
 #[macro_use]
 extern crate log;
-pub extern crate rustc_serialize;
-pub extern crate cgmath;
-pub extern crate getopts;
-
-pub mod crates {
-    pub use ::{cgmath, getopts, rustc_serialize};
-}
+extern crate rustc_serialize;
+extern crate cgmath;
+extern crate getopts;
 
 pub mod fps_counter;
 pub mod ortho_helper;
 pub mod opts;
 
-pub use fps_counter::FpsCounter;
-pub use opts::Opter;
-pub use ortho_helper::OrthographicHelper;
+pub use self::fps_counter::FpsCounter;
+pub use self::opts::Opter;
+pub use self::ortho_helper::OrthographicHelper;
 
 pub type Delta = f64;
 pub type Coord = f32;

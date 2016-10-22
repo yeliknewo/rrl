@@ -1,7 +1,7 @@
 use base_comps::RenderData;
 use components::Gui;
-use event_core::BackChannel;
-use events::{FromGui, ToGui};
+// use event_core::BackChannel;
+// use events::{FromGui, ToGui};
 use specs::{Allocator, Entity, MaskedStorage, RunArg, Storage, System};
 use std::ops::{Deref, DerefMut};
 use utils::Delta;

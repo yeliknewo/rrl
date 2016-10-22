@@ -1,6 +1,9 @@
 [package]
-name = "event"
+name = "base_comps"
 version = "0.1.0"
 authors = ["Kiley Owen <yelikdev@gmail.com>"]
 
 [dependencies]
+utils = { path="../utils" }
+specs = "0.7.0"
+cgmath = "0.12.0"

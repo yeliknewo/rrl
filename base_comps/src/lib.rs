@@ -1,12 +1,6 @@
-pub extern crate utils;
-pub extern crate specs;
-
-pub mod crates {
-    pub use ::{specs, utils};
-    pub use utils::crates::{cgmath, rustc_serialize};
-}
-
-pub use crates::cgmath;
+extern crate utils;
+extern crate specs;
+extern crate cgmath;
 
 pub mod camera;
 pub mod moving;

@@ -191,7 +191,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Any 
         self.used_indices.sort();
     }
 
-    fn think<F: FromPrimitive>(&mut self, player: Player, inputs: &mut Vec<W>) -> Box<Any + Send> {
+    fn think(&mut self, player: Player, inputs: &mut Vec<W>) -> Box<Any + Send> {
         // let dot1 = dot(vec[0].1, vec[1].1);
         // let dot2 = dot(vec[1].1, vec[0].1);
         //
@@ -285,7 +285,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Any 
     }
 }
 
-pub struct AiSystem<ID: Eq, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> {
+pub struct AiSystem<ID: Eq + Ord, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> {
     control_channel_index: usize,
     channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
     // main_back_channel: BackChannel<Box<Into<ToAi<S, W>>>, EF1>,
@@ -298,7 +298,7 @@ pub struct AiSystem<ID: Eq, S: Debug + Ord + Clone + Decodable + Encodable + ToP
 }
 
 impl<'a, 'b, ID, S, W, F1, F2> AiSystem<ID, S, W, F1, F2>
-    where ID: Eq,
+    where ID: Eq + Ord,
           S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num,
           W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable,
           F1: Send + Fn() -> W,
@@ -334,7 +334,7 @@ impl<'a, 'b, ID, S, W, F1, F2> AiSystem<ID, S, W, F1, F2>
 
         let mut system = AiSystem {
             channels: channels,
-            control_channel_index: channels.unwrap_or_else(|err| panic!("{:?}", err)),
+            control_channel_index: channels.binary_search_by_key(&&control_channel_id, |item| item.get_id()).unwrap_or_else(|err| panic!("{:?}", err)),
             // main_back_channel: main_back_channel,
             // feeder_back_channel: feeder_back_channel,
             // control_front_channel: control_front_channel,
@@ -379,7 +379,7 @@ impl<'a, 'b, ID, S, W, F1, F2> AiSystem<ID, S, W, F1, F2>
                     .get_mut(brain)
                     .unwrap_or_else(|| panic!("Brain had no type"))
                     .think(player, &mut vec);
-                self.control_front_channel.send_to(thought);
+                self.get_mut_control_channel().unwrap_or_else(|| panic!("Control channel was none")).send(thought);
             }
             ToAi::Reward(vec) => {
                 for reward in &vec {
@@ -413,10 +413,15 @@ impl<'a, 'b, ID, S, W, F1, F2> AiSystem<ID, S, W, F1, F2>
             brain.1.save(*brain.0);
         }
     }
+
+    fn get_mut_control_channel(&mut self) -> Option<&mut DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>> {
+        let temp = self.control_channel_index;
+        self.channels.get_mut(temp)
+    }
 }
 
 impl<'a, 'b, ID, S, W, F1, F2> System<Delta> for AiSystem<ID, S, W, F1, F2>
-    where ID: Eq + Send,
+    where ID: Eq + Send + Ord,
           S: Send + Ord + Clone + Decodable + Encodable + Debug + ToPrimitive + FromPrimitive + Num,
           W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable,
           F1: Send + Fn() -> W,
