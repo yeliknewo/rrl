@@ -1,24 +1,24 @@
 #[macro_use]
 extern crate log;
-pub extern crate time;
-pub extern crate art;
-pub extern crate systems;
+extern crate time;
+extern crate art;
+extern crate systems;
 
-pub mod crates {
-    pub use ::{art, systems, time};
-    pub use art::crates;
-    pub use systems::crates::{cgmath, components, event, event_enums, find_folder, getopts, gfx, gfx_device_gl, graphics, image, neural, rand, rustc_serialize, specs, utils};
-    #[cfg(feature = "g_glutin")]
-    pub use systems::crates::{gfx_window_glutin, glutin};
-    #[cfg(feature = "g_sdl2")]
-    pub use systems::crates::{gfx_window_sdl, sdl2};
-}
+// pub mod crates {
+//     pub use ::{art, systems, time};
+//     pub use art::crates;
+//     pub use systems::crates::{cgmath, components, event, event_enums, find_folder, getopts, gfx, gfx_device_gl, graphics, image, neural, rand, rustc_serialize, specs, utils};
+//     #[cfg(feature = "g_glutin")]
+//     pub use systems::crates::{gfx_window_glutin, glutin};
+//     #[cfg(feature = "g_sdl2")]
+//     pub use systems::crates::{gfx_window_sdl, sdl2};
+// }
 
-pub use crates::{cgmath, components, event, event_enums, find_folder, gfx, graphics, specs, utils};
-#[cfg(feature = "g_glutin")]
-pub use crates::glutin;
-#[cfg(feature = "g_sdl2")]
-pub use crates::sdl2;
+// pub use crates::{cgmath, components, event, event_enums, find_folder, gfx, graphics, specs, utils};
+// #[cfg(feature = "g_glutin")]
+// pub use crates::glutin;
+// #[cfg(feature = "g_sdl2")]
+// pub use crates::sdl2;
 
 mod event_clump;
 mod game;

@@ -1,6 +1,8 @@
 extern crate graphics;
 extern crate utils;
 
+pub mod control;
+
 pub mod control_x_gui;
 pub mod control_x_player;
 pub mod main_x_control;

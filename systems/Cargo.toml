@@ -6,11 +6,15 @@ authors = ["Kiley Owen <yelikdev@gmail.com>"]
 [dependencies]
 log = "0.3.6"
 find_folder = "0.3.0"
-components = { path="../components" }
-event = { path="../event" }
-event_enums = { path="../event_enums" }
+specs = "0.7.0"
+gfx = "0.12.1"
+graphics = { path="../graphics" }
+base_comps = { path="../base_comps" }
+event_core = { path="../event_core" }
+base_events = { path="../base_events" }
 neural = { path="../neural" }
-
-[features]
-g_glutin = ["event_enums/g_glutin"]
-g_sdl2 = ["event_enums/g_sdl2"]
+utils = { path="../utils" }
+#
+# [features]
+# g_glutin = ["event_enums/g_glutin"]
+# g_sdl2 = ["event_enums/g_sdl2"]

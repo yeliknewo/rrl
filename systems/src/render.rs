@@ -1,26 +1,31 @@
-use components::{Camera, RenderData, RenderId, Transform};
-use event::BackChannel;
-use event_enums::main_x_render::{MainFromRender, MainToRender};
+use base_comps::{Camera, RenderData, RenderId, Transform};
+use base_events::main_x_render::{MainFromRender, MainToRender};
+use event_core::duo_channel::DuoChannel;
 use gfx::Primitive;
 use gfx::tex::{FilterMethod, SamplerInfo, WrapMode};
 use gfx::traits::{Factory, FactoryExt};
 use graphics::{Bundle, GlEncoder, GlFactory, GlTexture, OutColor, OutDepth, Packet, ProjectionData, Shaders, TextureData, make_shaders, pipe};
 use specs::{RunArg, System};
+use std::any::Any;
 use std::sync::Arc;
 use utils::Delta;
 
-pub struct RenderSystem {
-    back_channel: BackChannel<MainToRender, MainFromRender>,
+pub struct RenderSystem<ID: Send + Eq + Ord> {
+    main_channel_index: usize,
+    channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
     out_color: OutColor,
     out_depth: OutDepth,
     bundles: Arc<Vec<Bundle>>,
     shaders: Shaders,
 }
 
-impl RenderSystem {
-    pub fn new(back_channel: BackChannel<MainToRender, MainFromRender>, out_color: OutColor, out_depth: OutDepth) -> RenderSystem {
+impl<ID> RenderSystem<ID>
+    where ID: Send + Eq + Ord
+{
+    pub fn new(channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>, main_channel_id: ID, out_color: OutColor, out_depth: OutDepth) -> RenderSystem<ID> {
         RenderSystem {
-            back_channel: back_channel,
+            main_channel_index: channels.binary_search_by_key(&&main_channel_id, |item| item.get_id()).unwrap_or_else(|err| panic!("{:?}", err)),
+            channels: channels,
             out_color: out_color,
             out_depth: out_depth,
             bundles: Arc::new(vec![]),
@@ -130,7 +135,7 @@ impl RenderSystem {
             b.encode(&mut encoder);
         }
 
-        self.back_channel.send_from(MainFromRender::Encoder(encoder));
+        self.get_mut_main_channel().unwrap_or_else(|| panic!("Main channel was none")).send(MainFromRender::Encoder(encoder));
     }
 
     fn process_event(&mut self, arg: &RunArg, event: MainToRender) -> bool {
@@ -141,9 +146,16 @@ impl RenderSystem {
             }
         }
     }
+
+    fn get_mut_main_channel(&mut self) -> Option<&mut DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>> {
+        let temp = self.main_channel_index;
+        self.channels.get_mut(temp)
+    }
 }
 
-impl System<Delta> for RenderSystem {
+impl<ID> System<Delta> for RenderSystem<ID>
+    where ID: Send + Eq + Ord
+{
     fn run(&mut self, arg: RunArg, _: Delta) {
         let mut event = self.back_channel.try_recv_to();
         while self.process_event(&arg,

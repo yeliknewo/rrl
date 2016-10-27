@@ -1,8 +1,4 @@
-pub extern crate yaml_rust;
-
-pub mod crates {
-    pub use ::yaml_rust;
-}
+extern crate yaml_rust;
 
 use std::fs::File;
 use std::io::{self, BufReader, Read};

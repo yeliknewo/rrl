@@ -1,23 +1,30 @@
-use event::BackChannel;
-use event_enums::control_x_player::{ControlFromPlayer, ControlToPlayer};
+use event_core::duo_channel::DuoChannel;
+// use event_enums::control_x_player::{ControlFromPlayer, ControlToPlayer};
 use specs::{RunArg, System};
+use std::any::Any;
 use utils::{Coord, Delta};
 
 #[allow(dead_code)]
-pub struct PlayerSystem<F1>
-    where F1: Send + Fn(&mut PlayerSystem<F1>, RunArg)
+pub struct PlayerSystem<ID, F1>
+    where ID: Send + Eq + Ord,
+          F1: Send + Fn(&mut PlayerSystem<ID, F1>, RunArg)
 {
-    control_back_channel: BackChannel<ControlToPlayer<f64>, ControlFromPlayer>,
+    // control_back_channel: BackChannel<ControlToPlayer<f64>, ControlFromPlayer>,
+    control_channel_index: usize,
+    channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
     event_handler: Option<F1>,
     speed: Coord,
 }
 
-impl<F1> PlayerSystem<F1>
-    where F1: Send + Fn(&mut PlayerSystem<F1>, RunArg)
+impl<ID, F1> PlayerSystem<ID, F1>
+    where ID: Send + Eq + Ord,
+          F1: Send + Fn(&mut PlayerSystem<ID, F1>, RunArg)
 {
-    pub fn new(control_back_channel: BackChannel<ControlToPlayer<f64>, ControlFromPlayer>, speed: Coord, event_handler: F1) -> PlayerSystem<F1> {
+    pub fn new(channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>, control_channel_id: ID, speed: Coord, event_handler: F1) -> PlayerSystem<ID, F1> {
         PlayerSystem {
-            control_back_channel: control_back_channel,
+            // control_back_channel: control_back_channel,
+            control_channel_index: channels.binary_search_by_key(&&control_channel_id, |item| item.get_id()).unwrap_or_else(|err| panic!("{:?}", err)),
+            channels: channels,
             speed: speed,
             event_handler: Some(event_handler),
         }
@@ -27,8 +34,9 @@ impl<F1> PlayerSystem<F1>
         self.speed
     }
 
-    pub fn get_mut_control_back_channel(&mut self) -> &mut BackChannel<ControlToPlayer<f64>, ControlFromPlayer> {
-        &mut self.control_back_channel
+    fn get_mut_control_channel(&mut self) -> Option<&mut DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>> {
+        let temp = self.control_channel_index;
+        self.channels.get_mut(temp)
     }
 
     pub fn get_mut_speed(&mut self) -> &mut Coord {
@@ -36,8 +44,9 @@ impl<F1> PlayerSystem<F1>
     }
 }
 
-impl<F1> System<Delta> for PlayerSystem<F1>
-    where F1: Send + Fn(&mut PlayerSystem<F1>, RunArg)
+impl<ID, F1> System<Delta> for PlayerSystem<ID, F1>
+    where ID: Send + Eq + Ord,
+          F1: Send + Fn(&mut PlayerSystem<ID, F1>, RunArg)
 {
     fn run(&mut self, arg: RunArg, _: Delta) {
 

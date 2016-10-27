@@ -1,23 +1,27 @@
 #[macro_use]
-pub extern crate log;
+extern crate log;
 
-pub extern crate components;
-pub extern crate event;
-pub extern crate event_enums;
-pub extern crate neural;
+extern crate base_comps;
+extern crate event_core;
+extern crate base_events;
+extern crate neural;
+extern crate specs;
+extern crate utils;
+extern crate gfx;
+extern crate graphics;
 
-pub mod crates {
-    pub use ::{components, event, event_enums, neural};
-    pub use components::crates::specs;
-    pub use event_enums::crates::{cgmath, find_folder, getopts, gfx, gfx_device_gl, graphics, image, rustc_serialize, utils};
-    #[cfg(feature = "g_glutin")]
-    pub use event_enums::crates::{gfx_window_glutin, glutin};
-    #[cfg(feature = "g_sdl2")]
-    pub use event_enums::crates::{gfx_window_sdl, sdl2};
-    pub use neural::crates::{num, rand};
-}
+// pub mod crates {
+//     pub use ::{components, event, event_enums, neural};
+//     pub use components::crates::specs;
+//     pub use event_enums::crates::{cgmath, find_folder, getopts, gfx, gfx_device_gl, graphics, image, rustc_serialize, utils};
+//     #[cfg(feature = "g_glutin")]
+//     pub use event_enums::crates::{gfx_window_glutin, glutin};
+//     #[cfg(feature = "g_sdl2")]
+//     pub use event_enums::crates::{gfx_window_sdl, sdl2};
+//     pub use neural::crates::{num, rand};
+// }
 
-pub use crates::{cgmath, find_folder, getopts, gfx, graphics, num, rand, rustc_serialize, specs, utils};
+// pub use crates::{cgmath, find_folder, getopts, gfx, graphics, num, rand, rustc_serialize, specs, utils};
 
 pub mod control;
 pub mod moving;

@@ -287,6 +287,7 @@ impl<S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + Num, W: Any 
 
 pub struct AiSystem<ID: Eq + Ord, S: Debug + Ord + Clone + Decodable + Encodable + ToPrimitive + FromPrimitive + Num, W: Any + Send + Float + SampleRange + FromPrimitive + Decodable + Encodable, F1: Send + Fn() -> W, F2: Send + Fn() -> W> {
     control_channel_index: usize,
+    feeder_channel_index: usize,
     channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
     // main_back_channel: BackChannel<Box<Into<ToAi<S, W>>>, EF1>,
     // feeder_back_channel: BackChannel<ET2, EF2>,
@@ -306,6 +307,7 @@ impl<'a, 'b, ID, S, W, F1, F2> AiSystem<ID, S, W, F1, F2>
 {
     pub fn new(channels: Vec<DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>>,
                control_channel_id: ID,
+               feeder_channel_id: ID,
                network_size_chase: Vec<S>,
                network_size_flee: Vec<S>,
                network_count: usize,
@@ -335,6 +337,7 @@ impl<'a, 'b, ID, S, W, F1, F2> AiSystem<ID, S, W, F1, F2>
         let mut system = AiSystem {
             channels: channels,
             control_channel_index: channels.binary_search_by_key(&&control_channel_id, |item| item.get_id()).unwrap_or_else(|err| panic!("{:?}", err)),
+            feeder_channel_index: channels.binary_search_by_key(&&feeder_channel_id, |item| item.get_id()).unwrap_or_else(|err| panic!("{:?}", err)),
             // main_back_channel: main_back_channel,
             // feeder_back_channel: feeder_back_channel,
             // control_front_channel: control_front_channel,
@@ -418,6 +421,11 @@ impl<'a, 'b, ID, S, W, F1, F2> AiSystem<ID, S, W, F1, F2>
         let temp = self.control_channel_index;
         self.channels.get_mut(temp)
     }
+
+    fn get_mut_feeder_channel(&mut self) -> Option<&mut DuoChannel<ID, Box<Any + Send>, Box<Any + Send>>> {
+        let temp = self.feeder_channel_index;
+        self.channels.get_mut(temp)
+    }
 }
 
 impl<'a, 'b, ID, S, W, F1, F2> System<Delta> for AiSystem<ID, S, W, F1, F2>
@@ -429,11 +437,11 @@ impl<'a, 'b, ID, S, W, F1, F2> System<Delta> for AiSystem<ID, S, W, F1, F2>
 {
     fn run(&mut self, arg: RunArg, _delta_time: Delta) {
 
-        while let Some(event) = self.feeder_back_channel.try_recv_to() {
+        while let Some(event) = self.get_mut_feeder_channel().unwrap_or_else(|| panic!("Feeder channel was none")).try_recv() {
             self.process_event(event);
         }
 
-        if let Some(event) = self.main_back_channel.try_recv_to() {
+        if let Some(event) = self.get_mut_main_channel().unwrap_or_else(|| panic!("Main channel was none")).try_recv() {
             match event {
                 ToAi::Save => {
                     self.save();

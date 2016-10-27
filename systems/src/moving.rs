@@ -1,4 +1,4 @@
-use components::{CompMoving, Transform};
+use base_comps::{CompMoving, Transform};
 use specs::{Join, RunArg, System};
 use utils::{Coord, Delta};
 
